@@ -1,4 +1,4 @@
-//=====-- MipsTargetAsmInfo.h - Mips asm properties -----------*- C++ -*--====//
+//=====-- MipsMCAsmInfo.h - Mips asm properties ---------------*- C++ -*--====//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,22 +7,22 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file contains the declaration of the MipsTargetAsmInfo class.
+// This file contains the declaration of the MipsMCAsmInfo class.
 //
 //===----------------------------------------------------------------------===//
 
 #ifndef MIPSTARGETASMINFO_H
 #define MIPSTARGETASMINFO_H
 
-#include "llvm/Target/TargetAsmInfo.h"
+#include "llvm/MC/MCAsmInfo.h"
 
 namespace llvm {
   class Target;
   class StringRef;
   
-  class MipsTargetAsmInfo : public TargetAsmInfo {
+  class MipsMCAsmInfo : public MCAsmInfo {
   public:
-    explicit MipsTargetAsmInfo(const Target &T, const StringRef &TT);
+    explicit MipsMCAsmInfo(const Target &T, const StringRef &TT);
   };
 
 } // namespace llvm
