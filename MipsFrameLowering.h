@@ -1,4 +1,4 @@
-//====--- MipsFrameInfo.h - Define TargetFrameInfo for Mips --*- C++ -*---====//
+//==--- MipsFrameLowering.h - Define frame lowering for Mips --*- C++ -*---===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -16,19 +16,19 @@
 
 #include "Mips.h"
 #include "MipsSubtarget.h"
-#include "llvm/Target/TargetFrameInfo.h"
+#include "llvm/Target/TargetFrameLowering.h"
 
 namespace llvm {
   class MipsSubtarget;
 
-class MipsFrameInfo : public TargetFrameInfo {
+class MipsFrameLowering : public TargetFrameLowering {
 protected:
   const MipsSubtarget &STI;
 
 public:
-  explicit MipsFrameInfo(const MipsSubtarget &sti)
+  explicit MipsFrameLowering(const MipsSubtarget &sti)
     // FIXME: Is this correct at all?
-    : TargetFrameInfo(StackGrowsUp, 8, 0), STI(sti) {
+    : TargetFrameLowering(StackGrowsUp, 8, 0), STI(sti) {
   }
 
   void adjustMipsStackFrame(MachineFunction &MF) const;
