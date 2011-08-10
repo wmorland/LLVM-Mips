@@ -11,6 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+// 64-bit predicate
+def IsMips64  : Predicate<"Subtarget.isMips64()">;
+
 //===----------------------------------------------------------------------===//
 // Instructions specific format
 //===----------------------------------------------------------------------===//
@@ -62,6 +65,7 @@ class DLogicR_shift_rotate_reg<bits<6> func, bits<5> _shamt, string instr_asm,
 // Instruction definition
 //===----------------------------------------------------------------------===//
 
+let Predicates = [IsMips64] in {
 def DADD    : DArithOverflowR<0x00, 0x2c, "dadd", 1>;
 //Find where this is being cracked open to check stuff like commutability
 def DSUB    : DArithOverflowR<0x00, 0x2e, "dsub">;
@@ -82,3 +86,4 @@ def DSRAV   : DLogicR_shift_rotate_reg<0x17, 0x00, "dsrav", sra>;
 //def DSLL32  : DLogicR_shift_rotate_imm<0x3c, 0x
 
 def DDIV    : DDiv
+} //end of "let Predicates = [IsMips64]
