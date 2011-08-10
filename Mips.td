@@ -64,6 +64,9 @@ def FeatureMips32      : SubtargetFeature<"mips32", "MipsArchVersion", "Mips32",
 def FeatureMips32r2    : SubtargetFeature<"mips32r2", "MipsArchVersion",
                                 "Mips32r2", "Mips32r2 ISA Support",
                                 [FeatureMips32, FeatureSEInReg]>;
+def FeatureMips64      : SubtargetFeature<"mips64", "MipsArchVersion",
+                                "Mips64 ISA Support",
+                                [FeatureMips32]>;
 
 //===----------------------------------------------------------------------===//
 // Mips processors supported.
@@ -75,6 +78,7 @@ class Proc<string Name, list<SubtargetFeature> Features>
 def : Proc<"mips1", [FeatureMips1]>;
 def : Proc<"r2000", [FeatureMips1]>;
 def : Proc<"r3000", [FeatureMips1]>;
+def : Proc<"r4000", [FeatureMips64]>;
 
 def : Proc<"mips2", [FeatureMips2]>;
 def : Proc<"r6000", [FeatureMips2]>;
