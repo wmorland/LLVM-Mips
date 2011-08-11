@@ -38,6 +38,10 @@ def FeatureSingleFloat : SubtargetFeature<"single-float", "IsSingleFloat",
                                 "true", "Only supports single precision float">;
 def FeatureO32         : SubtargetFeature<"o32", "MipsABI", "O32",
                                 "Enable o32 ABI">;
+def FeatureN32         : SubtargetFeature<"n32", "MipsABI", "N32",
+                                "Enable n32 ABI">;
+def FeatureN64         : SubtargetFeature<"n64", "MipsABI", "N64",
+                                "Enable n64 ABI">;
 def FeatureEABI        : SubtargetFeature<"eabi", "MipsABI", "EABI",
                                 "Enable eabi ABI">;
 def FeatureVFPU        : SubtargetFeature<"vfpu", "HasVFPU",
@@ -66,7 +70,7 @@ def FeatureMips32r2    : SubtargetFeature<"mips32r2", "MipsArchVersion",
                                 [FeatureMips32, FeatureSEInReg]>;
 def FeatureMips64      : SubtargetFeature<"mips64", "MipsArchVersion",
                                 "Mips64 ISA Support",
-                                [FeatureMips32]>;
+                                [FeatureMips32, FeatureN64]>;
 
 //===----------------------------------------------------------------------===//
 // Mips processors supported.
