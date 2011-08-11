@@ -66,24 +66,24 @@ class DLogicR_shift_rotate_reg<bits<6> func, bits<5> _shamt, string instr_asm,
 //===----------------------------------------------------------------------===//
 
 let Predicates = [IsMips64] in {
-def DADD    : DArithOverflowR<0x00, 0x2c, "dadd", 1>;
-//Find where this is being cracked open to check stuff like commutability
-def DSUB    : DArithOverflowR<0x00, 0x2e, "dsub">;
-def DADDI   : DArithOverflowI<0x18, "daddi", add, simm16, immSExt16>;
-def DADDIU  : DArithI<0x19, "daddiu", add, simm16, immSExt16>;
-def DADDU   : DArithR<0x00, 0x2d, "daddu", 1>;
-def DSUBU   : DArithR<0x00, 0x2f, "dsubu">;
+  def DADD    : DArithOverflowR<0x00, 0x2c, "dadd", 1>;
+  //Find where this is being cracked open to check stuff like commutability
+  def DSUB    : DArithOverflowR<0x00, 0x2e, "dsub">;
+  def DADDI   : DArithOverflowI<0x18, "daddi", add, simm16, immSExt16>;
+  def DADDIU  : DArithI<0x19, "daddiu", add, simm16, immSExt16>;
+  def DADDU   : DArithR<0x00, 0x2d, "daddu", 1>;
+  def DSUBU   : DArithR<0x00, 0x2f, "dsubu">;
 
-//What is second column
-def DSLL    : DLogicR_shift_rotate_imm<0x38, 0x00, "dsll", shl>;
-def DSRL    : DLogicR_shift_rotate_imm<0x3a, 0x00, "dsrl", srl>;
-def DSRA    : DLogicR_shift_rotate_imm<0x3b, 0x00, "dsra", sra>;
-def DSLLV   : DLogicR_shift_rotate_reg<0x14, 0x00, "dsllv", shl>;
-def DSRLV   : DLogicR_shift_rotate_reg<0x16, 0x00, "dsrlv", srl>;
-def DSRAV   : DLogicR_shift_rotate_reg<0x17, 0x00, "dsrav", sra>;
+  //What is second column
+  def DSLL    : DLogicR_shift_rotate_imm<0x38, 0x00, "dsll", shl>;
+  def DSRL    : DLogicR_shift_rotate_imm<0x3a, 0x00, "dsrl", srl>;
+  def DSRA    : DLogicR_shift_rotate_imm<0x3b, 0x00, "dsra", sra>;
+  def DSLLV   : DLogicR_shift_rotate_reg<0x14, 0x00, "dsllv", shl>;
+  def DSRLV   : DLogicR_shift_rotate_reg<0x16, 0x00, "dsrlv", srl>;
+  def DSRAV   : DLogicR_shift_rotate_reg<0x17, 0x00, "dsrav", sra>;
 
-//Not sure how to implement, may be a way in
-//def DSLL32  : DLogicR_shift_rotate_imm<0x3c, 0x
+  //Not sure how to implement, may be a way in
+  //def DSLL32  : DLogicR_shift_rotate_imm<0x3c, 0x
 
-def DDIV    : DDiv
+  def DDIV    : DDiv
 } //end of "let Predicates = [IsMips64]
