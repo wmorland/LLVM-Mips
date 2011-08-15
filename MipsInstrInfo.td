@@ -474,6 +474,13 @@ let usesCustomInserter = 1 in {
   def ATOMIC_CMP_SWAP_I32  : AtomicCmpSwap<atomic_cmp_swap_32, "32">;
 }
 
+// Unaligned memory load and store.
+// Replaces LW or SW during MCInstLowering if memory access is unaligned.
+def ULW :
+  MipsPseudo<(outs CPURegs:$dst), (ins mem:$addr), "ulw\t$dst, $addr", []>;
+def USW : 
+  MipsPseudo<(outs), (ins CPURegs:$dst, mem:$addr), "usw\t$dst, $addr", []>;
+
 //===----------------------------------------------------------------------===//
 // Instruction definition
 //===----------------------------------------------------------------------===//
@@ -547,7 +554,8 @@ let mayStore = 1, Constraints = "$src = $dst" in
 
 /// Jump and Branch Instructions
 def J       : JumpFJ<0x02, "j">;
-def JR      : JumpFR<0x00, 0x08, "jr">;
+let isIndirectBranch = 1 in
+  def JR      : JumpFR<0x00, 0x08, "jr">;
 def JAL     : JumpLink<0x03, "jal">;
 def JALR    : JumpLinkReg<0x00, 0x09, "jalr">;
 def BEQ     : CBranch<0x04, "beq", seteq>;
