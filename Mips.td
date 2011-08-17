@@ -40,6 +40,8 @@ def FeatureO32         : SubtargetFeature<"o32", "MipsABI", "O32",
                                 "Enable o32 ABI">;
 def FeatureEABI        : SubtargetFeature<"eabi", "MipsABI", "EABI",
                                 "Enable eabi ABI">;
+def FeatureN32         : SubtargetFeature<"n32", "MipsABI", "N32",
+                                "Enable n32 ABI">;
 def FeatureVFPU        : SubtargetFeature<"vfpu", "HasVFPU",
                                 "true", "Enable vector FPU instructions.">;
 def FeatureSEInReg     : SubtargetFeature<"seinreg", "HasSEInReg", "true",
@@ -75,6 +77,7 @@ class Proc<string Name, list<SubtargetFeature> Features>
 def : Proc<"mips1", [FeatureMips1]>;
 def : Proc<"r2000", [FeatureMips1]>;
 def : Proc<"r3000", [FeatureMips1]>;
+def : Proc<"r4000", [FeatureN32]>;
 
 def : Proc<"mips2", [FeatureMips2]>;
 def : Proc<"r6000", [FeatureMips2]>;

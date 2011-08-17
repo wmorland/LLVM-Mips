@@ -54,7 +54,7 @@ protected:
   // IsFP64bit - The target processor has 64-bit floating point registers.
   bool IsFP64bit;
 
-  // IsFP64bit - General-purpose registers are 64 bits wide
+  // IsGP64bit - General-purpose registers are 64 bits wide
   bool IsGP64bit;
 
   // HasVFPU - Processor has a vector floating point unit.
@@ -91,6 +91,7 @@ public:
   /// Only O32 and EABI supported right now.
   bool isABI_EABI() const { return MipsABI == EABI; }
   bool isABI_O32() const { return MipsABI == O32; }
+  bool isABI_N32() const { return MipsABI == N32; }
   unsigned getTargetABI() const { return MipsABI; }
 
   /// This constructor initializes the data members to match that
