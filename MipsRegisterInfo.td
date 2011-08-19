@@ -60,6 +60,12 @@ class HWR<bits<5> num, string n> : MipsReg<n> {
   let Num = num;
 }
 
+// Mips 64-bit Lo/Hi Registers
+class Mips64LoHiReg<Register SubReg, string n> : Register<n> {
+  let SubRegs = [SubReg];
+  let SubRegIndices = [sub_32];
+}
+
 //===----------------------------------------------------------------------===//
 //  Registers
 //===----------------------------------------------------------------------===//
@@ -190,6 +196,9 @@ let Namespace = "Mips" in {
   // Hi/Lo registers
   def HI  : Register<"hi">, DwarfRegNum<[64]>;
   def LO  : Register<"lo">, DwarfRegNum<[65]>;
+  
+  def HI_64 : Mips64LoHiReg<HI, "hi">, DwarfRegNum<[64]>;
+  def LO_64 : Mips64LoHiReg<LO, "lo">, DwarfRegNum<[65]>;
 
   // Status flags register
   def FCR31 : Register<"31">;
@@ -248,6 +257,9 @@ def CCR  : RegisterClass<"Mips", [i32], 32, (add FCR31)>;
 
 // Hi/Lo Registers
 def HILO : RegisterClass<"Mips", [i32], 32, (add HI, LO)>;
+
+// 64-bit Hi/Lo Registers
+def HILO_64 : RegisterClass<"Mips", [i64], 64 (add HI_64, LO_64)>;
 
 // Hardware registers
 def HWRegs : RegisterClass<"Mips", [i32], 32, (add HWR29)>;
