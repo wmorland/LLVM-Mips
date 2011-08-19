@@ -158,7 +158,7 @@ let Namespace = "Mips" in {
   def F20 : FPR<20, "F20">, DwarfRegNum<[52]>;
   def F21 : FPR<21, "F21">, DwarfRegNum<[53]>;
   def F22 : FPR<22, "F22">, DwarfRegNum<[54]>;
-  def F23 : FPR<23, "F23">, DwarfRegNum<[55]>;
+  def F23 : FPR<23, "F23">, DwarfRegNum<[55]>;_64
   def F24 : FPR<24, "F24">, DwarfRegNum<[56]>;
   def F25 : FPR<25, "F25">, DwarfRegNum<[57]>;
   def F26 : FPR<26, "F26">, DwarfRegNum<[58]>;
@@ -211,6 +211,16 @@ def CPURegs : RegisterClass<"Mips", [i32], 32, (add
   S0, S1, S2, S3, S4, S5, S6, S7,
   // Reserved
   ZERO, AT, K0, K1, GP, SP, FP, RA)>;
+  
+def CPU64Regs : RegisterClass<"Mips", [i64], 64, (add
+  // Return Values and Arguments
+  V0_64, V1_64, A0_64, A1_64, A2_64, A3_64, A4_64, A5_64, A6_64, A7_64,
+  // Not preserved across procedure calls
+  T4_64, T5_64, T6_64, T7_64, T8_64, T9_64,
+  // Callee save
+  S0_64, S1_64, S2_64, S3_64, S4_64, S5_64, S6_64, S7_64,
+  // Reserved
+  ZERO_64, AT_64, K0_64, K1_64, GP_64, SP_64, FP_64, RA_64)>;
 
 // 64bit fp:
 // * FGR64  - 32 64-bit registers
