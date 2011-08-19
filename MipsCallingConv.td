@@ -78,10 +78,10 @@ def RetCC_MipsEABI : CallingConv<[
 
 def CC_MipsEABI : CallingConv<[
   // Promote i8/i16 arguments to i32.
-  CCIfType<[i8, i16, i32], CCPromoteToType<i64>>,
+  CCIfType<[i8, i16], CCPromoteToType<i32>>,
 
   // Integer arguments are passed in integer registers.
-  CCIfType<[i64], CCAssignToReg<[A0, A1, A2, A3, A4, A5, A6, A7]>>,
+  CCIfType<[i64, i32], CCAssignToReg<[A0, A1, A2, A3, A4, A5, A6, A7]>>,
 
   // fp arguments are passed in fp registers
   CCIfType<[f32, f64], CCAssignToReg<[F12, F13, F14, F15, F16, F17, F18, F19]>>
@@ -90,8 +90,8 @@ def CC_MipsEABI : CallingConv<[
 // Only the return rules are defined here for N32. The rules for argument
 // passing are defined in MipsISelLowering.cpp.
 def RetCC_MipsN32 : CallingConv<[
-  // i32 are returned in registers V0, V1
-  CCIfType<[i64], CCAssignToReg<[V0, V1]>>,
+  // i32, i64 are returned in registers V0, V1
+  CCIfType<[i32, i64], CCAssignToReg<[V0, V1]>>,
 
   // f32, f64 are returned in registers F0, F2
   CCIfType<[f32, f64], CCAssignToReg<[F0, F2]>>,
