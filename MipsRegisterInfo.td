@@ -28,6 +28,17 @@ class MipsGPRReg<bits<5> num, string n> : MipsReg<n> {
   let Num = num;
 }
 
+let Namespace = "Mips" in {
+def sub_32 : SubRegIndex;
+}
+
+// Mips 64-bit CPU Registers
+class Mips64GPRReg<MipsGPRReg SubReg, string n> : MipsReg<n> {
+  let Num = SubReg.num;
+  let SubRegs = [SubReg];
+  let SubRegIndices = [sub_32];
+}
+
 // Mips 32-bit FPU Registers
 class FPR<bits<5> num, string n> : MipsReg<n> {
   let Num = num;
@@ -47,6 +58,12 @@ class AFPR<bits<5> num, string n, list<Register> subregs>
 // Mips Hardware Registers
 class HWR<bits<5> num, string n> : MipsReg<n> {
   let Num = num;
+}
+
+// Mips 64-bit Lo/Hi Registers
+class Mips64LoHiReg<Register SubReg, string n> : Register<n> {
+  let SubRegs = [SubReg];
+  let SubRegIndices = [sub_32];
 }
 
 //===----------------------------------------------------------------------===//
@@ -89,6 +106,40 @@ let Namespace = "Mips" in {
   def FP   : MipsGPRReg< 30, "FP">,  DwarfRegNum<[30]>;
   def RA   : MipsGPRReg< 31, "RA">,  DwarfRegNum<[31]>;
 
+  // 64-bit Registers
+  def ZERO_64 : Mips64GPRReg< ZERO, "ZERO">, DwarfRegNum<[0]>;
+  def AT_64   : Mips64GPRReg< AT, "AT">,   DwarfRegNum<[1]>;
+  def V0_64   : Mips64GPRReg< V0, "2">,    DwarfRegNum<[2]>;
+  def V1_64   : Mips64GPRReg< V1, "3">,    DwarfRegNum<[3]>;
+  def A0_64   : Mips64GPRReg< A0, "4">,    DwarfRegNum<[4]>;
+  def A1_64   : Mips64GPRReg< A1, "5">,    DwarfRegNum<[5]>;
+  def A2_64   : Mips64GPRReg< A2, "6">,    DwarfRegNum<[6]>;
+  def A3_64   : Mips64GPRReg< A3, "7">,    DwarfRegNum<[7]>;
+  def A4_64   : Mips64GPRReg< T0, "8">,    DwarfRegNum<[8]>;
+  def A5_64   : Mips64GPRReg< T1, "9">,    DwarfRegNum<[9]>;
+  def A6_64   : Mips64GPRReg< T2, "10">,  DwarfRegNum<[10]>;
+  def A7_64   : Mips64GPRReg< T3, "11">,  DwarfRegNum<[11]>;
+  def T4_64   : Mips64GPRReg< T4, "12">,  DwarfRegNum<[12]>;
+  def T5_64   : Mips64GPRReg< T5, "13">,  DwarfRegNum<[13]>;
+  def T6_64   : Mips64GPRReg< T6, "14">,  DwarfRegNum<[14]>;
+  def T7_64   : Mips64GPRReg< T7, "15">,  DwarfRegNum<[15]>;
+  def S0_64   : Mips64GPRReg< S0, "16">,  DwarfRegNum<[16]>;
+  def S1_64   : Mips64GPRReg< S1, "17">,  DwarfRegNum<[17]>;
+  def S2_64   : Mips64GPRReg< S2, "18">,  DwarfRegNum<[18]>;
+  def S3_64   : Mips64GPRReg< S3, "19">,  DwarfRegNum<[19]>;
+  def S4_64   : Mips64GPRReg< S4, "20">,  DwarfRegNum<[20]>;
+  def S5_64   : Mips64GPRReg< S5, "21">,  DwarfRegNum<[21]>;
+  def S6_64   : Mips64GPRReg< S6, "22">,  DwarfRegNum<[22]>;
+  def S7_64   : Mips64GPRReg< S7, "23">,  DwarfRegNum<[23]>;
+  def T8_64   : Mips64GPRReg< T8, "24">,  DwarfRegNum<[24]>;
+  def T9_64   : Mips64GPRReg< T9, "25">,  DwarfRegNum<[25]>;
+  def K0_64   : Mips64GPRReg< K0, "26">,  DwarfRegNum<[26]>;
+  def K1_64   : Mips64GPRReg< K1, "27">,  DwarfRegNum<[27]>;
+  def GP_64   : Mips64GPRReg< GP, "GP">,  DwarfRegNum<[28]>;
+  def SP_64   : Mips64GPRReg< SP, "SP">,  DwarfRegNum<[29]>;
+  def FP_64   : Mips64GPRReg< FP, "FP">,  DwarfRegNum<[30]>;
+  def RA_64   : Mips64GPRReg< RA, "RA">,  DwarfRegNum<[31]>;
+
   /// Mips Single point precision FPU Registers
   def F0  : FPR< 0,  "F0">, DwarfRegNum<[32]>;
   def F1  : FPR< 1,  "F1">, DwarfRegNum<[33]>;
@@ -113,7 +164,7 @@ let Namespace = "Mips" in {
   def F20 : FPR<20, "F20">, DwarfRegNum<[52]>;
   def F21 : FPR<21, "F21">, DwarfRegNum<[53]>;
   def F22 : FPR<22, "F22">, DwarfRegNum<[54]>;
-  def F23 : FPR<23, "F23">, DwarfRegNum<[55]>;
+  def F23 : FPR<23, "F23">, DwarfRegNum<[55]>;_64
   def F24 : FPR<24, "F24">, DwarfRegNum<[56]>;
   def F25 : FPR<25, "F25">, DwarfRegNum<[57]>;
   def F26 : FPR<26, "F26">, DwarfRegNum<[58]>;
@@ -145,6 +196,9 @@ let Namespace = "Mips" in {
   // Hi/Lo registers
   def HI  : Register<"hi">, DwarfRegNum<[64]>;
   def LO  : Register<"lo">, DwarfRegNum<[65]>;
+  
+  def HI_64 : Mips64LoHiReg<HI, "hi">, DwarfRegNum<[64]>;
+  def LO_64 : Mips64LoHiReg<LO, "lo">, DwarfRegNum<[65]>;
 
   // Status flags register
   def FCR31 : Register<"31">;
@@ -166,6 +220,16 @@ def CPURegs : RegisterClass<"Mips", [i32], 32, (add
   S0, S1, S2, S3, S4, S5, S6, S7,
   // Reserved
   ZERO, AT, K0, K1, GP, SP, FP, RA)>;
+  
+def CPU64Regs : RegisterClass<"Mips", [i64], 64, (add
+  // Return Values and Arguments
+  V0_64, V1_64, A0_64, A1_64, A2_64, A3_64, A4_64, A5_64, A6_64, A7_64,
+  // Not preserved across procedure calls
+  T4_64, T5_64, T6_64, T7_64, T8_64, T9_64,
+  // Callee save
+  S0_64, S1_64, S2_64, S3_64, S4_64, S5_64, S6_64, S7_64,
+  // Reserved
+  ZERO_64, AT_64, K0_64, K1_64, GP_64, SP_64, FP_64, RA_64)>;
 
 // 64bit fp:
 // * FGR64  - 32 64-bit registers
@@ -193,6 +257,9 @@ def CCR  : RegisterClass<"Mips", [i32], 32, (add FCR31)>;
 
 // Hi/Lo Registers
 def HILO : RegisterClass<"Mips", [i32], 32, (add HI, LO)>;
+
+// 64-bit Hi/Lo Registers
+def HILO_64 : RegisterClass<"Mips", [i64], 64 (add HI_64, LO_64)>;
 
 // Hardware registers
 def HWRegs : RegisterClass<"Mips", [i32], 32, (add HWR29)>;
