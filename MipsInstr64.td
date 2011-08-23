@@ -25,6 +25,17 @@ class DArithOverflowR<bits<6> op, bits<6> func, string instr_asm,
   let isCommutable = isComm;
 }
 
+class DStoreM<bits<6> op, string instr_asm, PatFrag OpNode>:
+  FI<op, (outs), (ins CPU64Regs:$dst, mem:$addr),
+     !strconcat(instr_asm, "\t$dst, $addr"),
+     [(OpNode CPU64Regs:$dst, addr:$addr)], IIStore>;
+     
+let canFoldAsLoad = 1, hasDelaySlot = 1 in
+class DLoadM<bits<6> op, string instr_asm, PatFrag OpNode>:
+  FI<op, (outs CPU64Regs:$dst), (ins mem:$addr),
+     !strconcat(instr_asm, "\t$dst, $addr"),
+     [(set CPU64Regs:$dst, (OpNode addr:$addr))], IILoad>;
+
 class DArithOverflowI<bits<6> op, string instr_asm, SDNode OpNode,
              Operand Od, PatLeaf imm_type> :
   FI<op, (outs CPU64Regs:$dst), (ins CPU64Regs:$b, Od:$c),
@@ -67,6 +78,8 @@ class DLogicR_shift_rotate_reg<bits<6> func, bits<5> _shamt, string instr_asm,
 
 let Predicates = [IsMips64] in {
   def DADD    : DArithOverflowR<0x00, 0x2c, "dadd", 1>;
+  def SD      : DStoreM<0x3f, "sd", store>;
+  def LD      : DLoadM<0x37,  "ld", load>;
   
 //    // Find where this is being cracked open to check stuff like commutability
 //    def DSUB    : DArithOverflowR<0x00, 0x2e, "dsub">;
