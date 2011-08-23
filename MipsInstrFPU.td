@@ -79,7 +79,7 @@ multiclass FFR1_1<bits<6> funct, string asmstr>
   def _S32 : FFR<0x11, funct, 0x0, (outs FGR32:$fd), (ins FGR32:$fs),
       !strconcat(asmstr, ".s\t$fd, $fs"), []>;
 
-  def _D32 : FFR<0x11, funct, 0x1, (outs FGR32:$fd), (ins AFGR64:$fs),
+  def _D32  : FFR<0x11, funct, 0x1, (outs FGR32:$fd), (ins AFGR64:$fs),
       !strconcat(asmstr, ".d\t$fd, $fs"), []>, Requires<[In32BitMode]>;
 
   //unsure about the third val i.e. fmt (see MipsInstrFormats.td)
