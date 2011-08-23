@@ -78,13 +78,13 @@ class DLogicR_shift_rotate_reg<bits<6> func, bits<5> _shamt, string instr_asm,
 
 let Predicates = [IsMips64] in {
   def DADD    : DArithOverflowR<0x00, 0x2c, "dadd", 1>;
+  def DADDIU  : DArithI<0x19, "daddiu", add, simm16, immSExt16>;
   def SD      : DStoreM<0x3f, "sd", store>;
   def LD      : DLoadM<0x37,  "ld", load>;
   
 //    // Find where this is being cracked open to check stuff like commutability
 //    def DSUB    : DArithOverflowR<0x00, 0x2e, "dsub">;
 //    def DADDI   : DArithOverflowI<0x18, "daddi", add, simm16, immSExt16>;
-//    def DADDIU  : DArithI<0x19, "daddiu", add, simm16, immSExt16>;
 //    def DADDU   : DArithR<0x00, 0x2d, "daddu", 1>;
 //    def DSUBU   : DArithR<0x00, 0x2f, "dsubu">;
 //  

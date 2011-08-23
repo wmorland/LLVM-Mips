@@ -34,7 +34,7 @@ def sub_32 : SubRegIndex;
 
 // Mips 64-bit CPU Registers
 class Mips64GPRReg<MipsGPRReg SubReg, string n> : MipsReg<n> {
-  let Num = SubReg.num;
+  let Num = SubReg.Num;
   let SubRegs = [SubReg];
   let SubRegIndices = [sub_32];
 }
@@ -164,7 +164,7 @@ let Namespace = "Mips" in {
   def F20 : FPR<20, "F20">, DwarfRegNum<[52]>;
   def F21 : FPR<21, "F21">, DwarfRegNum<[53]>;
   def F22 : FPR<22, "F22">, DwarfRegNum<[54]>;
-  def F23 : FPR<23, "F23">, DwarfRegNum<[55]>;_64
+  def F23 : FPR<23, "F23">, DwarfRegNum<[55]>;
   def F24 : FPR<24, "F24">, DwarfRegNum<[56]>;
   def F25 : FPR<25, "F25">, DwarfRegNum<[57]>;
   def F26 : FPR<26, "F26">, DwarfRegNum<[58]>;
@@ -259,7 +259,7 @@ def CCR  : RegisterClass<"Mips", [i32], 32, (add FCR31)>;
 def HILO : RegisterClass<"Mips", [i32], 32, (add HI, LO)>;
 
 // 64-bit Hi/Lo Registers
-def HILO_64 : RegisterClass<"Mips", [i64], 64 (add HI_64, LO_64)>;
+def HILO_64 : RegisterClass<"Mips", [i64], 64, (add HI_64, LO_64)>;
 
 // Hardware registers
 def HWRegs : RegisterClass<"Mips", [i32], 32, (add HWR29)>;

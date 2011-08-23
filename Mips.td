@@ -69,7 +69,7 @@ def FeatureMips32r2    : SubtargetFeature<"mips32r2", "MipsArchVersion",
                                 "Mips32r2", "Mips32r2 ISA Support",
                                 [FeatureMips32, FeatureSEInReg]>;
 def FeatureMips64      : SubtargetFeature<"mips64", "MipsArchVersion",
-                                "Mips64 ISA Support",
+                                "Mips64", "Mips64 ISA Support",
                                 [FeatureMips32, FeatureN64]>;
 
 //===----------------------------------------------------------------------===//
