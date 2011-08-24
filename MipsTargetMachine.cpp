@@ -21,7 +21,6 @@ extern "C" void LLVMInitializeMipsTarget() {
   // Register the target.
   RegisterTargetMachine<MipsTargetMachine> X(TheMipsTarget);
   RegisterTargetMachine<MipselTargetMachine> Y(TheMipselTarget);
-  RegisterTargetMachine<Mips64TargetMachine> Z(TheMips64Target);
 }
 
 // DataLayout --> Big-endian, 32-bit pointer/ABI/alignment
@@ -52,22 +51,6 @@ MipselTargetMachine(const Target &T, StringRef TT,
                     Reloc::Model RM, CodeModel::Model CM) :
   MipsTargetMachine(T, TT, CPU, FS, RM, CM, true) {}
 
-Mips64TargetMachine::
-Mips64TargetMachine(const Target &T, StringRef TT,
-                    StringRef CPU, StringRef FS,
-                    Reloc::Model RM, CodeModel::Model CM,
-                    bool isLittle=false):
-  LLVMTargetMachine(T, TT, CPU, FS, RM, CM),
-  Subtarget(TT, CPU, FS, isLittle),
-  DataLayout(isLittle ? std::string("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-"
-                        "a0:8:8-s0:64:64-n64") :
-                        std::string("E-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-"
-                        "a0:8:8-s0:64:64-n64")),
-  InstrInfo(*this),
-  FrameLowering(Subtarget),
-  TLInfo(*this), TSInfo(*this), JITInfo() {
-}
-  
 // Install an instruction selector pass using
 // the ISelDag to gen Mips code.
 bool MipsTargetMachine::
