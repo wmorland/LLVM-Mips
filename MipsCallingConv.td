@@ -87,7 +87,7 @@ def CC_MipsN64 : CallingConv<[
   // Integer arguments are passed in integer registers.
   CCIfType<[i32], CCAssignToReg<[A0, A1, A2, A3, T0, T1, T2, T3]>>,
   
-  CCIfType<[i64], CCAssignToReg<[A0_64, A1_64, A2_64, A3_64, T0_64, T1_64, T2_64, T3_64]>>,
+  CCIfType<[i64], CCAssignToReg<[A0_64, A1_64, A2_64, A3_64, A4_64, A5_64, A6_64, A7_64]>>,
 
   // Single fp arguments are passed in pairs within 32-bit mode
   CCIfType<[f32], CCIfSubtarget<"isSingleFloat()",
