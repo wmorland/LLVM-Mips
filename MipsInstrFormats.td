@@ -31,7 +31,7 @@ class MipsInst<dag outs, dag ins, string asmstr, list<dag> pattern,
 
   bits<6> opcode;
 
-  // Top 5 bits are the 'opcode' field
+  // Top 6 bits are the 'opcode' field
   let Inst{31-26} = opcode;
 
   dag OutOperandList = outs;
