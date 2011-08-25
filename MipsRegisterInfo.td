@@ -228,7 +228,9 @@ def CPU64Regs : RegisterClass<"Mips", [i64], 64, (add
   // Callee save
   S0_64, S1_64, S2_64, S3_64, S4_64, S5_64, S6_64, S7_64,
   // Reserved
-  ZERO_64, AT_64, K0_64, K1_64, GP_64, SP_64, FP_64, RA_64)>;
+  ZERO_64, AT_64, K0_64, K1_64, GP_64, SP_64, FP_64, RA_64)> {
+  let SubRegClasses = [(CPURegs sub_32)];
+}
 
 // 64bit fp:
 // * FGR64  - 32 64-bit registers
