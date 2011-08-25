@@ -33,9 +33,8 @@ def sub_32 : SubRegIndex;
 }
 
 // Mips 64-bit CPU Registers
-class Mips64GPRReg<MipsGPRReg SubReg, string n> : MipsReg<n> {
+class Mips64GPRReg<MipsGPRReg SubReg, string n> : MipsRegWithSubRegs<n, [SubReg]> {
   let Num = SubReg.Num;
-  let SubRegs = [SubReg];
   let SubRegIndices = [sub_32];
 }
 
