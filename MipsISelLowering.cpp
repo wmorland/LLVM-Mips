@@ -135,6 +135,40 @@ MipsTargetLowering(MipsTargetMachine &TM)
     setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,   Custom);
     setOperationAction(ISD::AND,                MVT::i32,   Custom);
     setOperationAction(ISD::OR,                 MVT::i32,   Custom);
+
+    setOperationAction(ISD::SDIV, MVT::i32, Expand);
+    setOperationAction(ISD::SREM, MVT::i32, Expand);
+    setOperationAction(ISD::UDIV, MVT::i32, Expand);
+    setOperationAction(ISD::UREM, MVT::i32, Expand);
+
+    // Operations not directly supported by Mips.
+    setOperationAction(ISD::UINT_TO_FP,        MVT::i32,   Expand);
+    setOperationAction(ISD::FP_TO_UINT,        MVT::i32,   Expand);
+    setOperationAction(ISD::CTPOP,             MVT::i32,   Expand);
+    setOperationAction(ISD::CTTZ,              MVT::i32,   Expand);
+    setOperationAction(ISD::ROTL,              MVT::i32,   Expand);
+
+    if (!Subtarget->isMips32r2())
+      setOperationAction(ISD::ROTR, MVT::i32,   Expand);
+
+    setOperationAction(ISD::SHL_PARTS,         MVT::i32,   Expand);
+    setOperationAction(ISD::SRA_PARTS,         MVT::i32,   Expand);
+    setOperationAction(ISD::SRL_PARTS,         MVT::i32,   Expand);
+    setOperationAction(ISD::FCOPYSIGN,         MVT::f32,   Custom);
+
+    setOperationAction(ISD::EXCEPTIONADDR,     MVT::i32, Expand);
+    setOperationAction(ISD::EHSELECTION,       MVT::i32, Expand);
+
+    if (!Subtarget->hasSEInReg()) {
+      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i8,  Expand);
+      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i16, Expand);
+    }
+
+    if (!Subtarget->hasBitCount())
+      setOperationAction(ISD::CTLZ, MVT::i32, Expand);
+
+    if (!Subtarget->hasSwap())
+      setOperationAction(ISD::BSWAP, MVT::i32, Expand);
   } else {
     setOperationAction(ISD::GlobalAddress,      MVT::i64,   Custom);
     setOperationAction(ISD::BlockAddress,       MVT::i64,   Custom);
@@ -145,6 +179,38 @@ MipsTargetLowering(MipsTargetMachine &TM)
     setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i64,   Custom);
     setOperationAction(ISD::AND,                MVT::i64,   Custom);
     setOperationAction(ISD::OR,                 MVT::i64,   Custom);
+
+    setOperationAction(ISD::SDIV, MVT::i64, Expand);
+    setOperationAction(ISD::SREM, MVT::i64, Expand);
+    setOperationAction(ISD::UDIV, MVT::i64, Expand);
+    setOperationAction(ISD::UREM, MVT::i64, Expand);
+
+    // Operations not directly supported by Mips.
+    setOperationAction(ISD::UINT_TO_FP,        MVT::i64,   Expand);
+    setOperationAction(ISD::FP_TO_UINT,        MVT::i64,   Expand);
+    setOperationAction(ISD::CTPOP,             MVT::i64,   Expand);
+    setOperationAction(ISD::CTTZ,              MVT::i64,   Expand);
+    setOperationAction(ISD::ROTL,              MVT::i64,   Expand);
+
+    setOperationAction(ISD::SHL_PARTS,         MVT::i64,   Expand);
+    setOperationAction(ISD::SRA_PARTS,         MVT::i64,   Expand);
+    setOperationAction(ISD::SRL_PARTS,         MVT::i64,   Expand);
+    setOperationAction(ISD::FCOPYSIGN,         MVT::f64,   Custom);
+
+    setOperationAction(ISD::EXCEPTIONADDR,     MVT::i64, Expand);
+    setOperationAction(ISD::EHSELECTION,       MVT::i64, Expand);
+
+    if (!Subtarget->hasSEInReg()) {
+      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i8,  Expand);
+      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i16, Expand);
+      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i32, Expand);
+    }
+
+    if (!Subtarget->hasBitCount())
+      setOperationAction(ISD::CTLZ, MVT::i64, Expand);
+
+    if (!Subtarget->hasSwap())
+      setOperationAction(ISD::BSWAP, MVT::i64, Expand);
   }
 
   setOperationAction(ISD::SELECT,             MVT::f32,   Custom);
@@ -152,29 +218,12 @@ MipsTargetLowering(MipsTargetMachine &TM)
   setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
   setOperationAction(ISD::VASTART,            MVT::Other, Custom);
 
-  setOperationAction(ISD::SDIV, MVT::i32, Expand);
-  setOperationAction(ISD::SREM, MVT::i32, Expand);
-  setOperationAction(ISD::UDIV, MVT::i32, Expand);
-  setOperationAction(ISD::UREM, MVT::i32, Expand);
-
   // Operations not directly supported by Mips.
   setOperationAction(ISD::BR_JT,             MVT::Other, Expand);
   setOperationAction(ISD::BR_CC,             MVT::Other, Expand);
   setOperationAction(ISD::SELECT_CC,         MVT::Other, Expand);
-  setOperationAction(ISD::UINT_TO_FP,        MVT::i32,   Expand);
-  setOperationAction(ISD::FP_TO_UINT,        MVT::i32,   Expand);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1,    Expand);
-  setOperationAction(ISD::CTPOP,             MVT::i32,   Expand);
-  setOperationAction(ISD::CTTZ,              MVT::i32,   Expand);
-  setOperationAction(ISD::ROTL,              MVT::i32,   Expand);
 
-  if (!Subtarget->isMips32r2())
-    setOperationAction(ISD::ROTR, MVT::i32,   Expand);
-
-  setOperationAction(ISD::SHL_PARTS,         MVT::i32,   Expand);
-  setOperationAction(ISD::SRA_PARTS,         MVT::i32,   Expand);
-  setOperationAction(ISD::SRL_PARTS,         MVT::i32,   Expand);
-  setOperationAction(ISD::FCOPYSIGN,         MVT::f32,   Custom);
   setOperationAction(ISD::FCOPYSIGN,         MVT::f64,   Custom);
   setOperationAction(ISD::FSIN,              MVT::f32,   Expand);
   setOperationAction(ISD::FSIN,              MVT::f64,   Expand);
@@ -189,9 +238,6 @@ MipsTargetLowering(MipsTargetMachine &TM)
   setOperationAction(ISD::FEXP,              MVT::f32,   Expand);
   setOperationAction(ISD::FMA,               MVT::f32,   Expand);
   setOperationAction(ISD::FMA,               MVT::f64,   Expand);
-
-  setOperationAction(ISD::EXCEPTIONADDR,     MVT::i32, Expand);
-  setOperationAction(ISD::EHSELECTION,       MVT::i32, Expand);
 
   setOperationAction(ISD::VAARG,             MVT::Other, Expand);
   setOperationAction(ISD::VACOPY,            MVT::Other, Expand);
@@ -208,17 +254,6 @@ MipsTargetLowering(MipsTargetMachine &TM)
 
   if (Subtarget->isSingleFloat())
     setOperationAction(ISD::SELECT_CC, MVT::f64, Expand);
-
-  if (!Subtarget->hasSEInReg()) {
-    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i8,  Expand);
-    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i16, Expand);
-  }
-
-  if (!Subtarget->hasBitCount())
-    setOperationAction(ISD::CTLZ, MVT::i32, Expand);
-
-  if (!Subtarget->hasSwap())
-    setOperationAction(ISD::BSWAP, MVT::i32, Expand);
 
   setTargetDAGCombine(ISD::ADDE);
   setTargetDAGCombine(ISD::SUBE);
@@ -241,7 +276,7 @@ bool MipsTargetLowering::allowsUnalignedMemoryAccesses(EVT VT) const {
 }
 
 MVT::SimpleValueType MipsTargetLowering::getSetCCResultType(EVT VT) const {
-  if(Subtarget->isMips64){
+  if(Subtarget->isMips64()){
     return MVT::i64;
   } else {
     return MVT::i32;
