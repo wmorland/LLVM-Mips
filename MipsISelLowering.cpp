@@ -98,6 +98,7 @@ MipsTargetLowering(MipsTargetMachine &TM)
   // Set up the register classes
   addRegisterClass(MVT::i32, Mips::CPURegsRegisterClass);
   addRegisterClass(MVT::f32, Mips::FGR32RegisterClass);
+  addRegisterClass(MVT::i64, Mips::CPU64RegsRegisterClass);
 
   // When dealing with single precision only, use libcalls
   if (!Subtarget->isSingleFloat())
@@ -120,19 +121,32 @@ MipsTargetLowering(MipsTargetMachine &TM)
   AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
 
   // Mips Custom Operations
-  setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
-  setOperationAction(ISD::BlockAddress,       MVT::i32,   Custom);
-  setOperationAction(ISD::GlobalTLSAddress,   MVT::i32,   Custom);
-  setOperationAction(ISD::JumpTable,          MVT::i32,   Custom);
-  setOperationAction(ISD::ConstantPool,       MVT::i32,   Custom);
+  if(!Subtarget->isMips64()) {
+    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
+    setOperationAction(ISD::BlockAddress,       MVT::i32,   Custom);
+    setOperationAction(ISD::GlobalTLSAddress,   MVT::i32,   Custom);
+    setOperationAction(ISD::JumpTable,          MVT::i32,   Custom);
+    setOperationAction(ISD::ConstantPool,       MVT::i32,   Custom);
+    setOperationAction(ISD::SELECT,             MVT::i32,   Custom);
+    setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,   Custom);
+    setOperationAction(ISD::AND,                MVT::i32,   Custom);
+    setOperationAction(ISD::OR,                 MVT::i32,   Custom);
+  } else {
+    setOperationAction(ISD::GlobalAddress,      MVT::i64,   Custom);
+    setOperationAction(ISD::BlockAddress,       MVT::i64,   Custom);
+    setOperationAction(ISD::GlobalTLSAddress,   MVT::i64,   Custom);
+    setOperationAction(ISD::JumpTable,          MVT::i64,   Custom);
+    setOperationAction(ISD::ConstantPool,       MVT::i64,   Custom);
+    setOperationAction(ISD::SELECT,             MVT::i64,   Custom);
+    setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i64,   Custom);
+    setOperationAction(ISD::AND,                MVT::i64,   Custom);
+    setOperationAction(ISD::OR,                 MVT::i64,   Custom);
+  }
+
   setOperationAction(ISD::SELECT,             MVT::f32,   Custom);
   setOperationAction(ISD::SELECT,             MVT::f64,   Custom);
-  setOperationAction(ISD::SELECT,             MVT::i32,   Custom);
   setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
-  setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,   Custom);
   setOperationAction(ISD::VASTART,            MVT::Other, Custom);
-  setOperationAction(ISD::AND,                MVT::i32,   Custom);
-  setOperationAction(ISD::OR,                 MVT::i32,   Custom);
 
   setOperationAction(ISD::SDIV, MVT::i32, Expand);
   setOperationAction(ISD::SREM, MVT::i32, Expand);
@@ -223,7 +237,11 @@ bool MipsTargetLowering::allowsUnalignedMemoryAccesses(EVT VT) const {
 }
 
 MVT::SimpleValueType MipsTargetLowering::getSetCCResultType(EVT VT) const {
-  return MVT::i32;
+  if(Subtarget->isMips64){
+    return MVT::i64;
+  } else {
+    return MVT::i32;
+  }
 }
 
 // SelectMadd -
