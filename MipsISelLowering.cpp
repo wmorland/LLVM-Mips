@@ -118,7 +118,11 @@ MipsTargetLowering(MipsTargetMachine &TM)
   // Without this, every float setcc comes with a AND/OR with the result,
   // we don't want this, since the fpcmp result goes to a flag register,
   // which is used implicitly by brcond and select operations.
-  AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
+  if(!Subtarget->isMips64()) {  
+    AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
+  } else {
+    AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i64);
+  }
 
   // Mips Custom Operations
   if(!Subtarget->isMips64()) {

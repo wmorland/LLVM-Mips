@@ -34,7 +34,7 @@ public:
 protected:
 
   enum MipsArchEnum {
-    Mips1, Mips2, Mips3, Mips4, Mips32, Mips32r2
+    Mips1, Mips2, Mips3, Mips4, Mips32, Mips32r2, Mips64
   };
 
   // Mips architecture version
@@ -105,6 +105,7 @@ public:
   bool isMips1() const { return MipsArchVersion == Mips1; }
   bool isMips32() const { return MipsArchVersion >= Mips32; }
   bool isMips32r2() const { return MipsArchVersion == Mips32r2; }
+  bool isMips64() const { return MipsArchVersion == Mips64; }
 
   bool isLittle() const { return IsLittle; }
   bool isFP64bit() const { return IsFP64bit; }
