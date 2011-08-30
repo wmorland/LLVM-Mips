@@ -2421,30 +2421,60 @@ MipsTargetLowering::LowerReturn(SDValue Chain,
     Flag = Chain.getValue(1);
   }
 
-  // The mips ABIs for returning structs by value requires that we copy
-  // the sret argument into $v0 for the return. We saved the argument into
-  // a virtual register in the entry block, so now we copy the value out
-  // and into $v0.
-  if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
-    MachineFunction &MF      = DAG.getMachineFunction();
-    MipsFunctionInfo *MipsFI = MF.getInfo<MipsFunctionInfo>();
-    unsigned Reg = MipsFI->getSRetReturnReg();
+  // Unsure how to do the switching for registers here so falling back
+  // on an ugly if clause
 
-    if (!Reg)
-      llvm_unreachable("sret virtual register not created in the entry block");
-    SDValue Val = DAG.getCopyFromReg(Chain, dl, Reg, getPointerTy());
+  if (Subtarget->isMips64()) {
+    // The mips ABIs for returning structs by value requires that we copy
+    // the sret argument into $v0 for the return. We saved the argument into
+    // a virtual register in the entry block, so now we copy the value out
+    // and into $v0.
+    if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
+      MachineFunction &MF      = DAG.getMachineFunction();
+      MipsFunctionInfo *MipsFI = MF.getInfo<MipsFunctionInfo>();
+      unsigned Reg = MipsFI->getSRetReturnReg();
 
-    Chain = DAG.getCopyToReg(Chain, dl, Mips::V0, Val, Flag);
-    Flag = Chain.getValue(1);
+      if (!Reg)
+        llvm_unreachable("sret virtual register not created in the entry block");
+      SDValue Val = DAG.getCopyFromReg(Chain, dl, Reg, getPointerTy());
+
+      Chain = DAG.getCopyToReg(Chain, dl, Mips::V0_64, Val, Flag);
+      Flag = Chain.getValue(1);
+    }
+
+    // Return on Mips is always a "jr $ra"
+    if (Flag.getNode())
+      return DAG.getNode(MipsISD::Ret, dl, MVT::Other,
+                         Chain, DAG.getRegister(Mips::RA_64, MVT::i64), Flag);
+    else // Return Void
+      return DAG.getNode(MipsISD::Ret, dl, MVT::Other,
+                         Chain, DAG.getRegister(Mips::RA_64, MVT::i64));
+  } else {
+    // The mips ABIs for returning structs by value requires that we copy
+    // the sret argument into $v0 for the return. We saved the argument into
+    // a virtual register in the entry block, so now we copy the value out
+    // and into $v0.
+    if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
+      MachineFunction &MF      = DAG.getMachineFunction();
+      MipsFunctionInfo *MipsFI = MF.getInfo<MipsFunctionInfo>();
+      unsigned Reg = MipsFI->getSRetReturnReg();
+
+      if (!Reg)
+        llvm_unreachable("sret virtual register not created in the entry block");
+      SDValue Val = DAG.getCopyFromReg(Chain, dl, Reg, getPointerTy());
+
+      Chain = DAG.getCopyToReg(Chain, dl, Mips::V0, Val, Flag);
+      Flag = Chain.getValue(1);
+    }
+
+    // Return on Mips is always a "jr $ra"
+    if (Flag.getNode())
+      return DAG.getNode(MipsISD::Ret, dl, MVT::Other,
+                         Chain, DAG.getRegister(Mips::RA, MVT::i32), Flag);
+    else // Return Void
+      return DAG.getNode(MipsISD::Ret, dl, MVT::Other,
+                         Chain, DAG.getRegister(Mips::RA, MVT::i32));
   }
-
-  // Return on Mips is always a "jr $ra"
-  if (Flag.getNode())
-    return DAG.getNode(MipsISD::Ret, dl, MVT::Other,
-                       Chain, DAG.getRegister(Mips::RA, MVT::i32), Flag);
-  else // Return Void
-    return DAG.getNode(MipsISD::Ret, dl, MVT::Other,
-                       Chain, DAG.getRegister(Mips::RA, MVT::i32));
 }
 
 //===----------------------------------------------------------------------===//
@@ -2508,7 +2538,7 @@ MipsTargetLowering::getSingleConstraintMatchWeight(
   return weight;
 }
 
-/// Given a register class constraint, like 'r', if this corresponds directly
+/// Given a register class constraint, like 'r',http://www.microsoft.com/security/sdl/adopt/eop.aspx if this corresponds directly
 /// to an LLVM register class, return a register of 0 and the register class
 /// pointer.
 std::pair<unsigned, const TargetRegisterClass*> MipsTargetLowering::
