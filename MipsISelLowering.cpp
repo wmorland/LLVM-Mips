@@ -100,6 +100,15 @@ MipsTargetLowering(MipsTargetMachine &TM)
   addRegisterClass(MVT::f32, Mips::FGR32RegisterClass);
   addRegisterClass(MVT::i64, Mips::CPU64RegsRegisterClass);
 
+  // Introduce a variable size to allow differences between 32-bit and
+  // 64-bit architecture
+  MVT::SimpleValueType size;
+  if (Subtarget->isMips64()) {
+    size = MVT::i64;
+  } else {
+    size = MVT::i32;
+  }
+
   // When dealing with single precision only, use libcalls
   if (!Subtarget->isSingleFloat())
     if (!Subtarget->isFP64bit())
@@ -118,100 +127,52 @@ MipsTargetLowering(MipsTargetMachine &TM)
   // Without this, every float setcc comes with a AND/OR with the result,
   // we don't want this, since the fpcmp result goes to a flag register,
   // which is used implicitly by brcond and select operations.
-  if(!Subtarget->isMips64()) {  
-    AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
-  } else {
-    AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i64);
-  }
+  AddPromotedToType(ISD::SETCC, MVT::i1, size);
 
   // Mips Custom Operations
-  if(!Subtarget->isMips64()) {
-    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
-    setOperationAction(ISD::BlockAddress,       MVT::i32,   Custom);
-    setOperationAction(ISD::GlobalTLSAddress,   MVT::i32,   Custom);
-    setOperationAction(ISD::JumpTable,          MVT::i32,   Custom);
-    setOperationAction(ISD::ConstantPool,       MVT::i32,   Custom);
-    setOperationAction(ISD::SELECT,             MVT::i32,   Custom);
-    setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,   Custom);
-    setOperationAction(ISD::AND,                MVT::i32,   Custom);
-    setOperationAction(ISD::OR,                 MVT::i32,   Custom);
+  setOperationAction(ISD::GlobalAddress,      size,   Custom);
+  setOperationAction(ISD::BlockAddress,       size,   Custom);
+  setOperationAction(ISD::GlobalTLSAddress,   size,   Custom);
+  setOperationAction(ISD::JumpTable,          size,   Custom);
+  setOperationAction(ISD::ConstantPool,       size,   Custom);
+  setOperationAction(ISD::SELECT,             size,   Custom);
+  setOperationAction(ISD::DYNAMIC_STACKALLOC, size,   Custom);
+  setOperationAction(ISD::AND,                size,   Custom);
+  setOperationAction(ISD::OR,                 size,   Custom);
 
-    setOperationAction(ISD::SDIV, MVT::i32, Expand);
-    setOperationAction(ISD::SREM, MVT::i32, Expand);
-    setOperationAction(ISD::UDIV, MVT::i32, Expand);
-    setOperationAction(ISD::UREM, MVT::i32, Expand);
+  setOperationAction(ISD::SDIV, size, Expand);
+  setOperationAction(ISD::SREM, size, Expand);
+  setOperationAction(ISD::UDIV, size, Expand);
+  setOperationAction(ISD::UREM, size, Expand);
 
-    // Operations not directly supported by Mips.
-    setOperationAction(ISD::UINT_TO_FP,        MVT::i32,   Expand);
-    setOperationAction(ISD::FP_TO_UINT,        MVT::i32,   Expand);
-    setOperationAction(ISD::CTPOP,             MVT::i32,   Expand);
-    setOperationAction(ISD::CTTZ,              MVT::i32,   Expand);
-    setOperationAction(ISD::ROTL,              MVT::i32,   Expand);
+  // Operations not directly supported by Mips.
+  setOperationAction(ISD::UINT_TO_FP,        size,   Expand);
+  setOperationAction(ISD::FP_TO_UINT,        size,   Expand);
+  setOperationAction(ISD::CTPOP,             size,   Expand);
+  setOperationAction(ISD::CTTZ,              size,   Expand);
+  setOperationAction(ISD::ROTL,              size,   Expand);
 
-    if (!Subtarget->isMips32r2())
-      setOperationAction(ISD::ROTR, MVT::i32,   Expand);
+  if (!Subtarget->isMips32r2())
+    setOperationAction(ISD::ROTR, size,   Expand);
 
-    setOperationAction(ISD::SHL_PARTS,         MVT::i32,   Expand);
-    setOperationAction(ISD::SRA_PARTS,         MVT::i32,   Expand);
-    setOperationAction(ISD::SRL_PARTS,         MVT::i32,   Expand);
-    setOperationAction(ISD::FCOPYSIGN,         MVT::f32,   Custom);
+  setOperationAction(ISD::SHL_PARTS,         size,   Expand);
+  setOperationAction(ISD::SRA_PARTS,         size,   Expand);
+  setOperationAction(ISD::SRL_PARTS,         size,   Expand);
+  setOperationAction(ISD::FCOPYSIGN,         MVT::f32,   Custom);
 
-    setOperationAction(ISD::EXCEPTIONADDR,     MVT::i32, Expand);
-    setOperationAction(ISD::EHSELECTION,       MVT::i32, Expand);
+  setOperationAction(ISD::EXCEPTIONADDR,     size, Expand);
+  setOperationAction(ISD::EHSELECTION,       size, Expand);
 
-    if (!Subtarget->hasSEInReg()) {
-      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i8,  Expand);
-      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i16, Expand);
-    }
-
-    if (!Subtarget->hasBitCount())
-      setOperationAction(ISD::CTLZ, MVT::i32, Expand);
-
-    if (!Subtarget->hasSwap())
-      setOperationAction(ISD::BSWAP, MVT::i32, Expand);
-  } else {
-    setOperationAction(ISD::GlobalAddress,      MVT::i64,   Custom);
-    setOperationAction(ISD::BlockAddress,       MVT::i64,   Custom);
-    setOperationAction(ISD::GlobalTLSAddress,   MVT::i64,   Custom);
-    setOperationAction(ISD::JumpTable,          MVT::i64,   Custom);
-    setOperationAction(ISD::ConstantPool,       MVT::i64,   Custom);
-    setOperationAction(ISD::SELECT,             MVT::i64,   Custom);
-    setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i64,   Custom);
-    setOperationAction(ISD::AND,                MVT::i64,   Custom);
-    setOperationAction(ISD::OR,                 MVT::i64,   Custom);
-
-    setOperationAction(ISD::SDIV, MVT::i64, Expand);
-    setOperationAction(ISD::SREM, MVT::i64, Expand);
-    setOperationAction(ISD::UDIV, MVT::i64, Expand);
-    setOperationAction(ISD::UREM, MVT::i64, Expand);
-
-    // Operations not directly supported by Mips.
-    setOperationAction(ISD::UINT_TO_FP,        MVT::i64,   Expand);
-    setOperationAction(ISD::FP_TO_UINT,        MVT::i64,   Expand);
-    setOperationAction(ISD::CTPOP,             MVT::i64,   Expand);
-    setOperationAction(ISD::CTTZ,              MVT::i64,   Expand);
-    setOperationAction(ISD::ROTL,              MVT::i64,   Expand);
-
-    setOperationAction(ISD::SHL_PARTS,         MVT::i64,   Expand);
-    setOperationAction(ISD::SRA_PARTS,         MVT::i64,   Expand);
-    setOperationAction(ISD::SRL_PARTS,         MVT::i64,   Expand);
-    setOperationAction(ISD::FCOPYSIGN,         MVT::f64,   Custom);
-
-    setOperationAction(ISD::EXCEPTIONADDR,     MVT::i64, Expand);
-    setOperationAction(ISD::EHSELECTION,       MVT::i64, Expand);
-
-    if (!Subtarget->hasSEInReg()) {
-      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i8,  Expand);
-      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i16, Expand);
-      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i32, Expand);
-    }
-
-    if (!Subtarget->hasBitCount())
-      setOperationAction(ISD::CTLZ, MVT::i64, Expand);
-
-    if (!Subtarget->hasSwap())
-      setOperationAction(ISD::BSWAP, MVT::i64, Expand);
+  if (!Subtarget->hasSEInReg()) {
+    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i8,  Expand);
+    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i16, Expand);
   }
+
+  if (!Subtarget->hasBitCount())
+    setOperationAction(ISD::CTLZ, size, Expand);
+
+  if (!Subtarget->hasSwap())
+    setOperationAction(ISD::BSWAP, size, Expand);
 
   setOperationAction(ISD::SELECT,             MVT::f32,   Custom);
   setOperationAction(ISD::SELECT,             MVT::f64,   Custom);
@@ -341,11 +302,19 @@ static bool SelectMadd(SDNode* ADDENode, SelectionDAG* CurDAG) {
                                  ADDENode->getOperand(1));// Hi0
 
   // create CopyFromReg nodes
-  SDValue CopyFromLo = CurDAG->getCopyFromReg(Chain, dl, Mips::LO, MVT::i32,
-                                              MAdd);
-  SDValue CopyFromHi = CurDAG->getCopyFromReg(CopyFromLo.getValue(1), dl,
-                                              Mips::HI, MVT::i32,
-                                              CopyFromLo.getValue(2));
+  if(!Subtarget->isMips64()) {
+    SDValue CopyFromLo = CurDAG->getCopyFromReg(Chain, dl, Mips::LO, MVT::i32,
+                                                MAdd);
+    SDValue CopyFromHi = CurDAG->getCopyFromReg(CopyFromLo.getValue(1), dl,
+                                                Mips::HI, MVT::i32,
+                                                CopyFromLo.getValue(2));
+  } else {
+    SDValue CopyFromLo = CurDAG->getCopyFromReg(Chain, dl, Mips::LO, MVT::i64,
+                                                    MAdd);
+        SDValue CopyFromHi = CurDAG->getCopyFromReg(CopyFromLo.getValue(1), dl,
+                                                    Mips::HI, MVT::i64,
+                                                    CopyFromLo.getValue(2));
+  }
 
   // replace uses of adde and addc here
   if (!SDValue(ADDCNode, 0).use_empty())
@@ -415,11 +384,19 @@ static bool SelectMsub(SDNode* SUBENode, SelectionDAG* CurDAG) {
                                  SUBENode->getOperand(0));// Hi0
 
   // create CopyFromReg nodes
-  SDValue CopyFromLo = CurDAG->getCopyFromReg(Chain, dl, Mips::LO, MVT::i32,
-                                              MSub);
-  SDValue CopyFromHi = CurDAG->getCopyFromReg(CopyFromLo.getValue(1), dl,
-                                              Mips::HI, MVT::i32,
-                                              CopyFromLo.getValue(2));
+  if(!Subtarget->isMips64()) {
+    SDValue CopyFromLo = CurDAG->getCopyFromReg(Chain, dl, Mips::LO, MVT::i32,
+                                                MSub);
+    SDValue CopyFromHi = CurDAG->getCopyFromReg(CopyFromLo.getValue(1), dl,
+                                                Mips::HI, MVT::i32,
+                                                CopyFromLo.getValue(2));
+  } else {
+    SDValue CopyFromLo = CurDAG->getCopyFromReg(Chain, dl, Mips::LO, MVT::i64,
+                                                MSub);
+    SDValue CopyFromHi = CurDAG->getCopyFromReg(CopyFromLo.getValue(1), dl,
+                                                Mips::HI_64, MVT::i64,
+                                                CopyFromLo.getValue(2));
+  }
 
   // replace uses of sube and subc here
   if (!SDValue(SUBCNode, 0).use_empty())
@@ -481,8 +458,13 @@ static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
 
   // insert MFHI
   if (N->hasAnyUseOfValue(1)) {
-    SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
-                                            Mips::HI, MVT::i32, InGlue);
+    if (Subtarget->isMips64()) {
+      SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
+                                            Mips::HI, MVT::i64, InGlue);
+    } else {
+      SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
+                                            Mips::HI_64, MVT::i32, InGlue);
+    }
     DAG.ReplaceAllUsesOfValueWith(SDValue(N, 1), CopyFromHi);
   }
 
@@ -573,8 +555,13 @@ static SDValue PerformSETCCCombine(SDNode *N, SelectionDAG& DAG,
   if (Cond.getOpcode() != MipsISD::FPCmp)
     return SDValue();
 
-  SDValue True  = DAG.getConstant(1, MVT::i32);
-  SDValue False = DAG.getConstant(0, MVT::i32);
+  if (Subtarget->isMips64()) {
+    SDValue True  = DAG.getConstant(1, MVT::i64);
+    SDValue False = DAG.getConstant(0, MVT::i64);
+  } else {
+    SDValue True  = DAG.getConstant(1, MVT::i32);
+    SDValue False = DAG.getConstant(0, MVT::i32);
+  }
 
   return CreateCMovFP(DAG, Cond, True, False, N->getDebugLoc());
 }
@@ -1266,23 +1253,44 @@ LowerDYNAMIC_STACKALLOC(SDValue Op, SelectionDAG &DAG) const
   SDValue Size = Op.getOperand(1);
   DebugLoc dl = Op.getDebugLoc();
 
-  // Get a reference from Mips stack pointer
-  SDValue StackPointer = DAG.getCopyFromReg(Chain, dl, Mips::SP, MVT::i32);
+  if (!(Subtarget->isMips64())) {
+    // Get a reference from Mips stack pointer
+    SDValue StackPointer = DAG.getCopyFromReg(Chain, dl, Mips::SP, MVT::i32);
 
-  // Subtract the dynamic size from the actual stack size to
-  // obtain the new stack size.
-  SDValue Sub = DAG.getNode(ISD::SUB, dl, MVT::i32, StackPointer, Size);
+    // Subtract the dynamic size from the actual stack size to
+    // obtain the new stack size.
+    SDValue Sub = DAG.getNode(ISD::SUB, dl, MVT::i32, StackPointer, Size);
 
-  // The Sub result contains the new stack start address, so it
-  // must be placed in the stack pointer register.
-  Chain = DAG.getCopyToReg(StackPointer.getValue(1), dl, Mips::SP, Sub,
-                           SDValue());
+    // The Sub result contains the new stack start address, so it
+    // must be placed in the stack pointer register.
+    Chain = DAG.getCopyToReg(StackPointer.getValue(1), dl, Mips::SP, Sub,
+                             SDValue());
 
-  // This node always has two return values: a new stack pointer
-  // value and a chain
-  SDVTList VTLs = DAG.getVTList(MVT::i32, MVT::Other);
-  SDValue Ptr = DAG.getFrameIndex(MipsFI->getDynAllocFI(), getPointerTy());
-  SDValue Ops[] = { Chain, Ptr, Chain.getValue(1) };
+    // This node always has two return values: a new stack pointer
+    // value and a chain
+    SDVTList VTLs = DAG.getVTList(MVT::i32, MVT::Other);
+    SDValue Ptr = DAG.getFrameIndex(MipsFI->getDynAllocFI(), getPointerTy());
+    SDValue Ops[] = { Chain, Ptr, Chain.getValue(1) };
+  } else {
+    // Get a reference from Mips stack pointer
+    SDValue StackPointer = DAG.getCopyFromReg(Chain, dl, Mips::SP, MVT::i64);
+
+    // Subtract the dynamic size from the actual stack size to
+    // obtain the new stack size.
+    SDValue Sub = DAG.getNode(ISD::SUB, dl, MVT::i64, StackPointer, Size);
+
+    // The Sub result contains the new stack start address, so it
+    // must be placed in the stack pointer register.
+    Chain = DAG.getCopyToReg(StackPointer.getValue(1), dl, Mips::SP, Sub,
+                             SDValue());
+
+    // This node always has two return values: a new stack pointer
+    // value and a chain
+    SDVTList VTLs = DAG.getVTList(MVT::i64, MVT::Other);
+    SDValue Ptr = DAG.getFrameIndex(MipsFI->getDynAllocFI(), getPointerTy());
+    SDValue Ops[] = { Chain, Ptr, Chain.getValue(1) };
+  }
+
 
   return DAG.getNode(MipsISD::DynAlloc, dl, VTLs, Ops, 3);
 }
@@ -1330,33 +1338,41 @@ SDValue MipsTargetLowering::LowerGlobalAddress(SDValue Op,
   DebugLoc dl = Op.getDebugLoc();
   const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
 
+  MVT::SimpleValueType size;
+
+  if (Subtarget->isMips64()) {
+    size = MVT::i64;
+  } else {
+    size = MVT::i32;
+  }
+
   if (getTargetMachine().getRelocationModel() != Reloc::PIC_) {
-    SDVTList VTs = DAG.getVTList(MVT::i32);
+    SDVTList VTs = DAG.getVTList(size);
 
     MipsTargetObjectFile &TLOF = (MipsTargetObjectFile&)getObjFileLowering();
 
     // %gp_rel relocation
     if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine())) {
-      SDValue GA = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+      SDValue GA = DAG.getTargetGlobalAddress(GV, dl, size, 0,
                                               MipsII::MO_GPREL);
       SDValue GPRelNode = DAG.getNode(MipsISD::GPRel, dl, VTs, &GA, 1);
-      SDValue GOT = DAG.getGLOBAL_OFFSET_TABLE(MVT::i32);
-      return DAG.getNode(ISD::ADD, dl, MVT::i32, GOT, GPRelNode);
+      SDValue GOT = DAG.getGLOBAL_OFFSET_TABLE(size);
+      return DAG.getNode(ISD::ADD, dl, size, GOT, GPRelNode);
     }
     // %hi/%lo relocation
-    SDValue GAHi = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+    SDValue GAHi = DAG.getTargetGlobalAddress(GV, dl, size, 0,
                                               MipsII::MO_ABS_HI);
-    SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+    SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, size, 0,
                                               MipsII::MO_ABS_LO);
     SDValue HiPart = DAG.getNode(MipsISD::Hi, dl, VTs, &GAHi, 1);
-    SDValue Lo = DAG.getNode(MipsISD::Lo, dl, MVT::i32, GALo);
-    return DAG.getNode(ISD::ADD, dl, MVT::i32, HiPart, Lo);
+    SDValue Lo = DAG.getNode(MipsISD::Lo, dl, size, GALo);
+    return DAG.getNode(ISD::ADD, dl, size, HiPart, Lo);
   }
 
-  SDValue GA = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+  SDValue GA = DAG.getTargetGlobalAddress(GV, dl, size, 0,
                                           MipsII::MO_GOT);
-  GA = DAG.getNode(MipsISD::WrapperPIC, dl, MVT::i32, GA);
-  SDValue ResNode = DAG.getLoad(MVT::i32, dl,
+  GA = DAG.getNode(MipsISD::WrapperPIC, dl, size, GA);
+  SDValue ResNode = DAG.getLoad(size, dl,
                                 DAG.getEntryNode(), GA, MachinePointerInfo(),
                                 false, false, 0);
   // On functions and global targets not internal linked only
@@ -1364,10 +1380,10 @@ SDValue MipsTargetLowering::LowerGlobalAddress(SDValue Op,
   if (!GV->hasInternalLinkage() &&
       (!GV->hasLocalLinkage() || isa<Function>(GV)))
     return ResNode;
-  SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+  SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, size, 0,
                                             MipsII::MO_ABS_LO);
-  SDValue Lo = DAG.getNode(MipsISD::Lo, dl, MVT::i32, GALo);
-  return DAG.getNode(ISD::ADD, dl, MVT::i32, ResNode, Lo);
+  SDValue Lo = DAG.getNode(MipsISD::Lo, dl, size, GALo);
+  return DAG.getNode(ISD::ADD, dl, size, ResNode, Lo);
 }
 
 SDValue MipsTargetLowering::LowerBlockAddress(SDValue Op,
