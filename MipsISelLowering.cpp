@@ -156,9 +156,9 @@ MipsTargetLowering(MipsTargetMachine &TM)
   setOperationAction(ISD::UINT_TO_FP,        size,       Expand);
   setOperationAction(ISD::FP_TO_UINT,        size,       Expand);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1,    Expand);
-  setOperationAction(ISD::CTPOP,             size,   Expand);
-  setOperationAction(ISD::CTTZ,              size,   Expand);
-  setOperationAction(ISD::ROTL,              size,   Expand);
+  setOperationAction(ISD::CTPOP,             size,       Expand);
+  setOperationAction(ISD::CTTZ,              size,       Expand);
+  setOperationAction(ISD::ROTL,              size,       Expand);
 
   if (!Subtarget->isMips32r2())
     setOperationAction(ISD::ROTR, size,   Expand);
@@ -305,10 +305,10 @@ static bool SelectMadd(SDNode* ADDENode, SelectionDAG* CurDAG) {
                                                 Mips::HI, MVT::i32,
                                                 CopyFromLo.getValue(2));
   } else {
-    SDValue CopyFromLo = CurDAG->getCopyFromReg(Chain, dl, Mips::LO, MVT::i64,
+    SDValue CopyFromLo = CurDAG->getCopyFromReg(Chain, dl, Mips::LO_64, MVT::i64,
                                                     MAdd);
         SDValue CopyFromHi = CurDAG->getCopyFromReg(CopyFromLo.getValue(1), dl,
-                                                    Mips::HI, MVT::i64,
+                                                    Mips::HI_64, MVT::i64,
                                                     CopyFromLo.getValue(2));
   }
 
@@ -387,7 +387,7 @@ static bool SelectMsub(SDNode* SUBENode, SelectionDAG* CurDAG) {
                                                 Mips::HI, MVT::i32,
                                                 CopyFromLo.getValue(2));
   } else {
-    SDValue CopyFromLo = CurDAG->getCopyFromReg(Chain, dl, Mips::LO, MVT::i64,
+    SDValue CopyFromLo = CurDAG->getCopyFromReg(Chain, dl, Mips::LO_64, MVT::i64,
                                                 MSub);
     SDValue CopyFromHi = CurDAG->getCopyFromReg(CopyFromLo.getValue(1), dl,
                                                 Mips::HI_64, MVT::i64,
@@ -551,13 +551,16 @@ static SDValue PerformSETCCCombine(SDNode *N, SelectionDAG& DAG,
   if (Cond.getOpcode() != MipsISD::FPCmp)
     return SDValue();
 
+  MVT::SimpleValueType size;
+
   if (Subtarget->isMips64()) {
-    SDValue True  = DAG.getConstant(1, MVT::i64);
-    SDValue False = DAG.getConstant(0, MVT::i64);
+    size = MVT::i64;
   } else {
-    SDValue True  = DAG.getConstant(1, MVT::i32);
-    SDValue False = DAG.getConstant(0, MVT::i32);
+    size = MVT::i32;
   }
+
+  SDValue True  = DAG.getConstant(1, size);
+  SDValue False = DAG.getConstant(0, size);
 
   return CreateCMovFP(DAG, Cond, True, False, N->getDebugLoc());
 }
@@ -1249,44 +1252,31 @@ LowerDYNAMIC_STACKALLOC(SDValue Op, SelectionDAG &DAG) const
   SDValue Size = Op.getOperand(1);
   DebugLoc dl = Op.getDebugLoc();
 
-  if (!(Subtarget->isMips64())) {
-    // Get a reference from Mips stack pointer
-    SDValue StackPointer = DAG.getCopyFromReg(Chain, dl, Mips::SP, MVT::i32);
+  MVT::SimpleValueType size;
 
-    // Subtract the dynamic size from the actual stack size to
-    // obtain the new stack size.
-    SDValue Sub = DAG.getNode(ISD::SUB, dl, MVT::i32, StackPointer, Size);
-
-    // The Sub result contains the new stack start address, so it
-    // must be placed in the stack pointer register.
-    Chain = DAG.getCopyToReg(StackPointer.getValue(1), dl, Mips::SP, Sub,
-                             SDValue());
-
-    // This node always has two return values: a new stack pointer
-    // value and a chain
-    SDVTList VTLs = DAG.getVTList(MVT::i32, MVT::Other);
-    SDValue Ptr = DAG.getFrameIndex(MipsFI->getDynAllocFI(), getPointerTy());
-    SDValue Ops[] = { Chain, Ptr, Chain.getValue(1) };
+  if (Subtarget->isMips64()) {
+    size = MVT::i64;
   } else {
-    // Get a reference from Mips stack pointer
-    SDValue StackPointer = DAG.getCopyFromReg(Chain, dl, Mips::SP, MVT::i64);
-
-    // Subtract the dynamic size from the actual stack size to
-    // obtain the new stack size.
-    SDValue Sub = DAG.getNode(ISD::SUB, dl, MVT::i64, StackPointer, Size);
-
-    // The Sub result contains the new stack start address, so it
-    // must be placed in the stack pointer register.
-    Chain = DAG.getCopyToReg(StackPointer.getValue(1), dl, Mips::SP, Sub,
-                             SDValue());
-
-    // This node always has two return values: a new stack pointer
-    // value and a chain
-    SDVTList VTLs = DAG.getVTList(MVT::i64, MVT::Other);
-    SDValue Ptr = DAG.getFrameIndex(MipsFI->getDynAllocFI(), getPointerTy());
-    SDValue Ops[] = { Chain, Ptr, Chain.getValue(1) };
+    size = MVT::i32;
   }
 
+  // Get a reference from Mips stack pointer
+  SDValue StackPointer = DAG.getCopyFromReg(Chain, dl, Mips::SP, size);
+
+  // Subtract the dynamic size from the actual stack size to
+  // obtain the new stack size.
+  SDValue Sub = DAG.getNode(ISD::SUB, dl, size, StackPointer, Size);
+
+  // The Sub result contains the new stack start address, so it
+  // must be placed in the stack pointer register.
+  Chain = DAG.getCopyToReg(StackPointer.getValue(1), dl, Mips::SP, Sub,
+                           SDValue());
+
+  // This node always has two return values: a new stack pointer
+  // value and a chain
+  SDVTList VTLs = DAG.getVTList(size, MVT::Other);
+  SDValue Ptr = DAG.getFrameIndex(MipsFI->getDynAllocFI(), getPointerTy());
+  SDValue Ops[] = { Chain, Ptr, Chain.getValue(1) };
 
   return DAG.getNode(MipsISD::DynAlloc, dl, VTLs, Ops, 3);
 }
