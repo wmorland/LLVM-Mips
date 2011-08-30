@@ -130,15 +130,19 @@ MipsTargetLowering(MipsTargetMachine &TM)
   AddPromotedToType(ISD::SETCC, MVT::i1, size);
 
   // Mips Custom Operations
-  setOperationAction(ISD::GlobalAddress,      size,   Custom);
-  setOperationAction(ISD::BlockAddress,       size,   Custom);
-  setOperationAction(ISD::GlobalTLSAddress,   size,   Custom);
-  setOperationAction(ISD::JumpTable,          size,   Custom);
-  setOperationAction(ISD::ConstantPool,       size,   Custom);
-  setOperationAction(ISD::SELECT,             size,   Custom);
-  setOperationAction(ISD::DYNAMIC_STACKALLOC, size,   Custom);
-  setOperationAction(ISD::AND,                size,   Custom);
-  setOperationAction(ISD::OR,                 size,   Custom);
+  setOperationAction(ISD::GlobalAddress,      size,       Custom);
+  setOperationAction(ISD::BlockAddress,       size,       Custom);
+  setOperationAction(ISD::GlobalTLSAddress,   size,       Custom);
+  setOperationAction(ISD::JumpTable,          size,       Custom);
+  setOperationAction(ISD::ConstantPool,       size,       Custom);
+  setOperationAction(ISD::SELECT,             MVT::f32,   Custom);
+  setOperationAction(ISD::SELECT,             MVT::f64,   Custom);
+  setOperationAction(ISD::SELECT,             size,       Custom);
+  setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
+  setOperationAction(ISD::DYNAMIC_STACKALLOC, size,       Custom);
+  setOperationAction(ISD::VASTART,            MVT::Other, Custom);
+  setOperationAction(ISD::AND,                size,       Custom);
+  setOperationAction(ISD::OR,                 size,       Custom);
 
   setOperationAction(ISD::SDIV, size, Expand);
   setOperationAction(ISD::SREM, size, Expand);
@@ -146,8 +150,12 @@ MipsTargetLowering(MipsTargetMachine &TM)
   setOperationAction(ISD::UREM, size, Expand);
 
   // Operations not directly supported by Mips.
-  setOperationAction(ISD::UINT_TO_FP,        size,   Expand);
-  setOperationAction(ISD::FP_TO_UINT,        size,   Expand);
+  setOperationAction(ISD::BR_JT,             MVT::Other, Expand);
+  setOperationAction(ISD::BR_CC,             MVT::Other, Expand);
+  setOperationAction(ISD::SELECT_CC,         MVT::Other, Expand);
+  setOperationAction(ISD::UINT_TO_FP,        size,       Expand);
+  setOperationAction(ISD::FP_TO_UINT,        size,       Expand);
+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1,    Expand);
   setOperationAction(ISD::CTPOP,             size,   Expand);
   setOperationAction(ISD::CTTZ,              size,   Expand);
   setOperationAction(ISD::ROTL,              size,   Expand);
@@ -155,36 +163,10 @@ MipsTargetLowering(MipsTargetMachine &TM)
   if (!Subtarget->isMips32r2())
     setOperationAction(ISD::ROTR, size,   Expand);
 
-  setOperationAction(ISD::SHL_PARTS,         size,   Expand);
-  setOperationAction(ISD::SRA_PARTS,         size,   Expand);
-  setOperationAction(ISD::SRL_PARTS,         size,   Expand);
+  setOperationAction(ISD::SHL_PARTS,         size,       Expand);
+  setOperationAction(ISD::SRA_PARTS,         size,       Expand);
+  setOperationAction(ISD::SRL_PARTS,         size,       Expand);
   setOperationAction(ISD::FCOPYSIGN,         MVT::f32,   Custom);
-
-  setOperationAction(ISD::EXCEPTIONADDR,     size, Expand);
-  setOperationAction(ISD::EHSELECTION,       size, Expand);
-
-  if (!Subtarget->hasSEInReg()) {
-    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i8,  Expand);
-    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i16, Expand);
-  }
-
-  if (!Subtarget->hasBitCount())
-    setOperationAction(ISD::CTLZ, size, Expand);
-
-  if (!Subtarget->hasSwap())
-    setOperationAction(ISD::BSWAP, size, Expand);
-
-  setOperationAction(ISD::SELECT,             MVT::f32,   Custom);
-  setOperationAction(ISD::SELECT,             MVT::f64,   Custom);
-  setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
-  setOperationAction(ISD::VASTART,            MVT::Other, Custom);
-
-  // Operations not directly supported by Mips.
-  setOperationAction(ISD::BR_JT,             MVT::Other, Expand);
-  setOperationAction(ISD::BR_CC,             MVT::Other, Expand);
-  setOperationAction(ISD::SELECT_CC,         MVT::Other, Expand);
-  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1,    Expand);
-
   setOperationAction(ISD::FCOPYSIGN,         MVT::f64,   Custom);
   setOperationAction(ISD::FSIN,              MVT::f32,   Expand);
   setOperationAction(ISD::FSIN,              MVT::f64,   Expand);
@@ -199,6 +181,9 @@ MipsTargetLowering(MipsTargetMachine &TM)
   setOperationAction(ISD::FEXP,              MVT::f32,   Expand);
   setOperationAction(ISD::FMA,               MVT::f32,   Expand);
   setOperationAction(ISD::FMA,               MVT::f64,   Expand);
+
+  setOperationAction(ISD::EXCEPTIONADDR,     size,       Expand);
+  setOperationAction(ISD::EHSELECTION,       size,       Expand);
 
   setOperationAction(ISD::VAARG,             MVT::Other, Expand);
   setOperationAction(ISD::VACOPY,            MVT::Other, Expand);
@@ -215,6 +200,17 @@ MipsTargetLowering(MipsTargetMachine &TM)
 
   if (Subtarget->isSingleFloat())
     setOperationAction(ISD::SELECT_CC, MVT::f64, Expand);
+
+  if (!Subtarget->hasSEInReg()) {
+      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i8,  Expand);
+      setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i16, Expand);
+  }
+
+  if (!Subtarget->hasBitCount())
+    setOperationAction(ISD::CTLZ, size, Expand);
+
+  if (!Subtarget->hasSwap())
+    setOperationAction(ISD::BSWAP, size, Expand);
 
   setTargetDAGCombine(ISD::ADDE);
   setTargetDAGCombine(ISD::SUBE);
