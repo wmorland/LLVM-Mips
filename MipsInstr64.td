@@ -104,3 +104,25 @@ let Predicates = [IsMips64] in {
 //    // Just listing
 //    def DCLO
 } // end of "let Predicates = [IsMips64]
+
+//===----------------------------------------------------------------------===//
+//  Arbitrary patterns that map to one or more instructions
+//===----------------------------------------------------------------------===//
+
+// brcond patterns
+def : Pat<(brcond (seteq CPU64Regs:$lhs, 0), bb:$dst),
+          (BEQ CPU64Regs:$lhs, ZERO_64, bb:$dst)>;
+
+def : Pat<(brcond (setge CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
+          (BEQ (SLT CPU64Regs:$lhs, CPU64Regs:$rhs), ZERO_64, bb:$dst)>;
+def : Pat<(brcond (setuge CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
+          (BEQ (SLTu CPU64Regs:$lhs, CPU64Regs:$rhs), ZERO_64, bb:$dst)>;
+def : Pat<(brcond (setge CPU64Regs:$lhs, immSExt16:$rhs), bb:$dst),
+          (BEQ (SLTi CPU64Regs:$lhs, immSExt16:$rhs), ZERO_64, bb:$dst)>;
+def : Pat<(brcond (setuge CPU64Regs:$lhs, immSExt16:$rhs), bb:$dst),
+          (BEQ (SLTiu CPU64Regs:$lhs, immSExt16:$rhs), ZERO_64, bb:$dst)>;
+
+def : Pat<(brcond (setle CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
+          (BEQ (SLT CPU64Regs:$rhs, CPU64Regs:$lhs), ZERO_64, bb:$dst)>;
+def : Pat<(brcond (setule CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
+          (BEQ (SLTu CPU64Regs:$rhs, CPU64Regs:$lhs), ZERO_64, bb:$dst)>;
