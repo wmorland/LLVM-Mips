@@ -11,8 +11,25 @@
 //
 //===----------------------------------------------------------------------===//
 
+//===----------------------------------------------------------------------===//
+// Mips Instruction Predicate Definitions.
+//===----------------------------------------------------------------------===//
 // 64-bit predicate
 def IsMips64  : Predicate<"Subtarget.isMips64()">;
+
+//===----------------------------------------------------------------------===//
+// Mips Operand, Complex Patterns and Transformations Definitions.
+//===----------------------------------------------------------------------===//
+
+// Transformation Function - get the lower 32 bits.
+def LO32 : SDNodeXForm<imm, [{
+  return getI64Imm((unsigned)N->getZExtValue() & 0xFFFFFFFF);
+}]>;
+
+// Transformation Function - get the higher 32 bits.
+def HI32 : SDNodeXForm<imm, [{
+  return getI64Imm((unsigned)N->getZExtValue() >> 32);
+}]>;
 
 //===----------------------------------------------------------------------===//
 // Instructions specific format
@@ -108,6 +125,16 @@ let Predicates = [IsMips64] in {
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions
 //===----------------------------------------------------------------------===//
+
+// Small immediates
+def : Pat<(i64 immSExt16:$in),
+          (ADDiu ZERO, imm:$in)>;
+def : Pat<(i64 immZExt16:$in),
+          (ORi ZERO, imm:$in)>;
+
+// Arbitrary immediates
+def : Pat<(i64 imm:$imm),
+          (ORi (LUi (HI32 imm:$imm)), (LO32 imm:$imm))>;
 
 // brcond patterns
 def : Pat<(brcond (seteq CPU64Regs:$lhs, 0), bb:$dst),

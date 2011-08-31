@@ -92,6 +92,12 @@ private:
     return CurDAG->getTargetConstant(Imm, MVT::i32);
   }
 
+  // getI64Imm - Return a target constant with the specified
+  // value, of type i64
+  inline SDValue getI64Imm(unsigned Imm) {
+    return CurDAG->getTargetConstant(Imm, MVT::i64);
+  }
+
   virtual bool SelectInlineAsmMemoryOperand(const SDValue &Op,
                                             char ConstraintCode,
                                             std::vector<SDValue> &OutOps);
