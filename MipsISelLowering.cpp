@@ -445,8 +445,13 @@ static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
 
   // insert MFLO
   if (N->hasAnyUseOfValue(0)) {
-    SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, Mips::LO, MVT::i32,
-                                            InGlue);
+    if (Subtarget->isMips64()) {
+      SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, Mips::LO_64, MVT::i64,
+                                              InGlue);
+    } else {
+      SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, Mips::LO, MVT::i32,
+                                              InGlue);
+    }
     DAG.ReplaceAllUsesOfValueWith(SDValue(N, 0), CopyFromLo);
     InChain = CopyFromLo.getValue(1);
     InGlue = CopyFromLo.getValue(2);
@@ -1299,7 +1304,16 @@ LowerBRCOND(SDValue Op, SelectionDAG &DAG) const
   SDValue CCNode  = CondRes.getOperand(2);
   Mips::CondCode CC =
     (Mips::CondCode)cast<ConstantSDNode>(CCNode)->getZExtValue();
-  SDValue BrCode = DAG.getConstant(GetFPBranchCodeFromCond(CC), MVT::i32);
+
+  MVT::SimpleValueType size;
+
+  if (Subtarget->isMips64()) {
+    size = MVT::i64;
+  } else {
+    size = MVT::i32;
+  }
+
+  SDValue BrCode = DAG.getConstant(GetFPBranchCodeFromCond(CC), size);
 
   return DAG.getNode(MipsISD::FPBrcond, dl, Op.getValueType(), Chain, BrCode,
                      Dest, CondRes);
