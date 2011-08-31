@@ -405,6 +405,17 @@ class ReadHardware: FR<0x1f, 0x3b, (outs CPURegs:$dst), (ins HWRegs:$src),
   let shamt = 0;
 }
 
+// Ext and Ins
+class ExtIns<bits<6> _funct, string instr_asm, dag outs, dag ins,
+             list<dag> pattern, InstrItinClass itin>:
+  FR<0x1f, _funct, outs, ins, !strconcat(instr_asm, " $rt, $rs, $pos, $sz"),
+     pattern, itin>, Requires<[IsMips32r2]> {
+  bits<5> pos;
+  bits<5> sz;
+  let rd = sz;
+  let shamt = pos;
+}
+
 // Atomic instructions with 2 source operands (ATOMIC_SWAP & ATOMIC_LOAD_*).
 class Atomic2Ops<PatFrag Op, string Opstr> :
   MipsPseudo<(outs CPURegs:$dst), (ins CPURegs:$ptr, CPURegs:$incr),
@@ -483,12 +494,18 @@ let usesCustomInserter = 1 in {
   def ATOMIC_CMP_SWAP_I32  : AtomicCmpSwap<atomic_cmp_swap_32, "32">;
 }
 
-// Unaligned memory load and store.
+// Unaligned loads and stores.
 // Replaces LW or SW during MCInstLowering if memory access is unaligned.
 def ULW :
   MipsPseudo<(outs CPURegs:$dst), (ins mem:$addr), "ulw\t$dst, $addr", []>;
+def ULH :
+  MipsPseudo<(outs CPURegs:$dst), (ins mem:$addr), "ulh\t$dst, $addr", []>;
+def ULHu :
+  MipsPseudo<(outs CPURegs:$dst), (ins mem:$addr), "ulhu\t$dst, $addr", []>;
 def USW : 
   MipsPseudo<(outs), (ins CPURegs:$dst, mem:$addr), "usw\t$dst, $addr", []>;
+def USH : 
+  MipsPseudo<(outs), (ins CPURegs:$dst, mem:$addr), "ush\t$dst, $addr", []>;
 
 //===----------------------------------------------------------------------===//
 // Instruction definition
@@ -670,22 +687,19 @@ def MUL   : ArithR<0x1c, 0x02, "mul", mul, IIImul, 1>, Requires<[IsMips32]>;
 
 def RDHWR : ReadHardware;
 
-let Predicates = [IsMips32r2] in {
-  def Ext : ExtIns<0b000000, "ext", (outs CPURegs:$dst),
-                   (ins CPURegs:$src, uimm16:$size, uimm16:$pos),
-                   [(set CPURegs:$dst,
-                     (MipsExt CPURegs:$src, immZExt5:$size, immZExt5:$pos))],
-                   NoItinerary>;
-  let Constraints = "$src1 = $dst" in
-  def Ins : ExtIns<0b000100, "ins",
-                   (outs CPURegs:$dst),
-                   (ins CPURegs:$src, uimm16:$size, uimm16:$pos,
-                    CPURegs:$src1),
-                   [(set CPURegs:$dst,
-                     (MipsIns CPURegs:$src, immZExt5:$size, immZExt5:$pos,
-                      CPURegs:$src1))],
-                   NoItinerary>;
-}
+def EXT : ExtIns<0, "ext", (outs CPURegs:$rt),
+                 (ins CPURegs:$rs, uimm16:$pos, uimm16:$sz),
+                 [(set CPURegs:$rt,
+                   (MipsExt CPURegs:$rs, immZExt5:$pos, immZExt5:$sz))],
+                 NoItinerary>;
+
+let Constraints = "$src = $rt" in
+def INS : ExtIns<4, "ins", (outs CPURegs:$rt),
+                 (ins CPURegs:$rs, uimm16:$pos, uimm16:$sz, CPURegs:$src),
+                 [(set CPURegs:$rt,
+                   (MipsIns CPURegs:$rs, immZExt5:$pos, immZExt5:$sz,
+                    CPURegs:$src))],
+                 NoItinerary>;
 
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions
