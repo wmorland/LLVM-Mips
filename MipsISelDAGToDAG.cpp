@@ -117,17 +117,31 @@ SDNode *MipsDAGToDAGISel::getGlobalBaseReg() {
 /// Used on Mips Load/Store instructions
 bool MipsDAGToDAGISel::
 SelectAddr(SDValue Addr, SDValue &Base, SDValue &Offset) {
+
+  // Introduce a variable size to allow differences between 32-bit and
+  // 64-bit architecture
+  MVT::SimpleValueType size;
+  if (Subtarget->isMips64()) {
+    size = MVT::i64;
+  } else {
+    size = MVT::i32;
+  }
+
   // if Address is FI, get the TargetFrameIndex.
   if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(Addr)) {
-    Base   = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i32);
-    Offset = CurDAG->getTargetConstant(0, MVT::i32);
+    Base   = CurDAG->getTargetFrameIndex(FIN->getIndex(), size);
+    Offset = CurDAG->getTargetConstant(0, size);
     return true;
   }
 
   // on PIC code Load GA
   if (TM.getRelocationModel() == Reloc::PIC_) {
     if (Addr.getOpcode() == MipsISD::WrapperPIC) {
-      Base   = CurDAG->getRegister(Mips::GP, MVT::i32);
+      if (Subtarget->isMips64()) {
+        Base   = CurDAG->getRegister(Mips::GP_64, MVT::i64);
+      } else {
+        Base   = CurDAG->getRegister(Mips::GP, MVT::i32);
+      }
       Offset = Addr.getOperand(0);
       return true;
     }
@@ -136,7 +150,11 @@ SelectAddr(SDValue Addr, SDValue &Base, SDValue &Offset) {
         Addr.getOpcode() == ISD::TargetGlobalAddress))
       return false;
     else if (Addr.getOpcode() == ISD::TargetGlobalTLSAddress) {
-      Base   = CurDAG->getRegister(Mips::GP, MVT::i32);
+      if (Subtarget->isMips64()) {
+        Base   = CurDAG->getRegister(Mips::GP_64, MVT::i64);
+      } else {
+        Base   = CurDAG->getRegister(Mips::GP, MVT::i32);
+      }
       Offset = Addr;
       return true;
     }
@@ -150,11 +168,11 @@ SelectAddr(SDValue Addr, SDValue &Base, SDValue &Offset) {
       // If the first operand is a FI, get the TargetFI Node
       if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>
                                   (Addr.getOperand(0)))
-        Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i32);
+        Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), size);
       else
         Base = Addr.getOperand(0);
 
-      Offset = CurDAG->getTargetConstant(CN->getZExtValue(), MVT::i32);
+      Offset = CurDAG->getTargetConstant(CN->getZExtValue(), size);
       return true;
     }
   }
@@ -183,7 +201,7 @@ SelectAddr(SDValue Addr, SDValue &Base, SDValue &Offset) {
   }
 
   Base   = Addr;
-  Offset = CurDAG->getTargetConstant(0, MVT::i32);
+  Offset = CurDAG->getTargetConstant(0, size);
   return true;
 }
 

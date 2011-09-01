@@ -51,38 +51,70 @@ unsigned MipsRegisterInfo::
 getRegisterNumbering(unsigned RegEnum)
 {
   switch (RegEnum) {
-    case Mips::ZERO : case Mips::F0 : case Mips::D0 : return 0;
-    case Mips::AT   : case Mips::F1 : return 1;
-    case Mips::V0   : case Mips::F2 : case Mips::D1 : return 2;
-    case Mips::V1   : case Mips::F3 : return 3;
-    case Mips::A0   : case Mips::F4 : case Mips::D2 : return 4;
-    case Mips::A1   : case Mips::F5 : return 5;
-    case Mips::A2   : case Mips::F6 : case Mips::D3 : return 6;
-    case Mips::A3   : case Mips::F7 : return 7;
-    case Mips::T0   : case Mips::F8 : case Mips::D4 : return 8;
-    case Mips::T1   : case Mips::F9 : return 9;
-    case Mips::T2   : case Mips::F10: case Mips::D5: return 10;
-    case Mips::T3   : case Mips::F11: return 11;
-    case Mips::T4   : case Mips::F12: case Mips::D6: return 12;
-    case Mips::T5   : case Mips::F13: return 13;
-    case Mips::T6   : case Mips::F14: case Mips::D7: return 14;
-    case Mips::T7   : case Mips::F15: return 15;
-    case Mips::S0   : case Mips::F16: case Mips::D8: return 16;
-    case Mips::S1   : case Mips::F17: return 17;
-    case Mips::S2   : case Mips::F18: case Mips::D9: return 18;
-    case Mips::S3   : case Mips::F19: return 19;
-    case Mips::S4   : case Mips::F20: case Mips::D10: return 20;
-    case Mips::S5   : case Mips::F21: return 21;
-    case Mips::S6   : case Mips::F22: case Mips::D11: return 22;
-    case Mips::S7   : case Mips::F23: return 23;
-    case Mips::T8   : case Mips::F24: case Mips::D12: return 24;
-    case Mips::T9   : case Mips::F25: return 25;
-    case Mips::K0   : case Mips::F26: case Mips::D13: return 26;
-    case Mips::K1   : case Mips::F27: return 27;
-    case Mips::GP   : case Mips::F28: case Mips::D14: return 28;
-    case Mips::SP   : case Mips::F29: return 29;
-    case Mips::FP   : case Mips::F30: case Mips::D15: return 30;
-    case Mips::RA   : case Mips::F31: return 31;
+    case Mips::ZERO : case Mips::ZERO_64 :
+      case Mips::F0 : case Mips::D0 : return 0;
+    case Mips::AT   : case Mips::AT_64 :
+      case Mips::F1 : return 1;
+    case Mips::V0   : case Mips::V0_64 :
+      case Mips::F2 : case Mips::D1 : return 2;
+    case Mips::V1   : case Mips::V1_64 :
+      case Mips::F3 : return 3;
+    case Mips::A0   : case Mips::A0_64 :
+      case Mips::F4 : case Mips::D2 : return 4;
+    case Mips::A1   : case Mips::A1_64 :
+      case Mips::F5 : return 5;
+    case Mips::A2   : case Mips::A2_64 :
+      case Mips::F6 : case Mips::D3 : return 6;
+    case Mips::A3   : case Mips::A3_64 :
+      case Mips::F7 : return 7;
+    case Mips::T0   : case Mips::A4_64 :
+      case Mips::F8 : case Mips::D4 : return 8;
+    case Mips::T1   : case Mips::A5_64 :
+      case Mips::F9 : return 9;
+    case Mips::T2   : case Mips::A6_64 :
+      case Mips::F10: case Mips::D5: return 10;
+    case Mips::T3   : case Mips::A7_64 :
+      case Mips::F11: return 11;
+    case Mips::T4   : case Mips::T4_64 :
+      case Mips::F12: case Mips::D6: return 12;
+    case Mips::T5   : case Mips::T5_64 :
+      case Mips::F13: return 13;
+    case Mips::T6   : case Mips::T6_64 :
+      case Mips::F14: case Mips::D7: return 14;
+    case Mips::T7   : case Mips::T7_64 :
+      case Mips::F15: return 15;
+    case Mips::S0   : case Mips::S0_64 :
+      case Mips::F16: case Mips::D8: return 16;
+    case Mips::S1   : case Mips::S1_64 :
+      case Mips::F17: return 17;
+    case Mips::S2   : case Mips::S2_64 :
+      case Mips::F18: case Mips::D9: return 18;
+    case Mips::S3   : case Mips::S3_64 :
+      case Mips::F19: return 19;
+    case Mips::S4   : case Mips::S4_64 :
+      case Mips::F20: case Mips::D10: return 20;
+    case Mips::S5   : case Mips::S5_64 :
+      case Mips::F21: return 21;
+    case Mips::S6   : case Mips::S6_64 :
+      case Mips::F22: case Mips::D11: return 22;
+    case Mips::S7   : case Mips::S7_64 :
+      case Mips::F23: return 23;
+    case Mips::T8   : case Mips::T8_64 :
+      case Mips::F24: case Mips::D12: return 24;
+    case Mips::T9   : case Mips::T9_64 :
+      case Mips::F25: return 25;
+    case Mips::K0   : case Mips::K0_64 :
+      case Mips::F26: case Mips::D13: return 26;
+    case Mips::K1   : case Mips::K1_64 :
+      case Mips::F27: return 27;
+    case Mips::GP   : case Mips::GP_64 :
+      case Mips::F28: case Mips::D14: return 28;
+    case Mips::SP   : case Mips::SP_64 :
+      case Mips::F29: return 29;
+    case Mips::FP   : case Mips::FP_64 :
+      case Mips::F30: case Mips::D15: return 30;
+    case Mips::RA   : case Mips::RA_64 :
+      case Mips::F31: return 31;
     default: llvm_unreachable("Unknown register number!");
   }
   return 0; // Not reached
