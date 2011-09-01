@@ -171,6 +171,9 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   if (RC == Mips::CPURegsRegisterClass)
     BuildMI(MBB, I, DL, get(Mips::SW)).addReg(SrcReg, getKillRegState(isKill))
                                       .addFrameIndex(FI).addImm(0);
+  else if (RC = Mips::CPU64RegsRegisterClass)
+    BuildMI(MBB, I, DL, get(Mips::SD)).addReg(SrcReg, getKillRegState(isKill))
+                                      .addFrameIndex(FI).addImm(0);
   else if (RC == Mips::FGR32RegisterClass)
     BuildMI(MBB, I, DL, get(Mips::SWC1)).addReg(SrcReg, getKillRegState(isKill))
                                         .addFrameIndex(FI).addImm(0);
@@ -193,6 +196,8 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 
   if (RC == Mips::CPURegsRegisterClass)
     BuildMI(MBB, I, DL, get(Mips::LW), DestReg).addFrameIndex(FI).addImm(0);
+  else if (RC == Mips::CPU64RegsRegisterClass)
+    BuildMI(MBB, I, DL, get(Mips::LD), DestReg).addFrameIndex(FI).addImm(0);
   else if (RC == Mips::FGR32RegisterClass)
     BuildMI(MBB, I, DL, get(Mips::LWC1), DestReg).addFrameIndex(FI).addImm(0);
   else if (RC == Mips::AFGR64RegisterClass) {
