@@ -122,6 +122,13 @@ let Predicates = [IsMips64] in {
 //    def DCLO
 } // end of "let Predicates = [IsMips64]
 
+// Unaligned loads and stores.
+// Replaces LW or SW during MCInstLowering if memory access is unaligned.
+def ULD :
+  MipsPseudo<(outs CPU64Regs:$dst), (ins mem:$addr), "ulw\t$dst, $addr", []>;
+def USD : 
+  MipsPseudo<(outs), (ins CPU64Regs:$dst, mem:$addr), "usw\t$dst, $addr", []>;
+
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions
 //===----------------------------------------------------------------------===//

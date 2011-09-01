@@ -81,6 +81,8 @@ void MipsAsmPrinter::EmitInstruction(const MachineInstr *MI) {
     unsigned NaturalAlignment, UnalignedOpc;
     
     switch (Opc) {
+    case Mips::LD:  NaturalAlignment = 8; UnalignedOpc = Mips::ULD;  break;
+    case Mips::SD:  NaturalAlignment = 8; UnalignedOpc = Mips::USD;  break;
     case Mips::LW:  NaturalAlignment = 4; UnalignedOpc = Mips::ULW;  break;
     case Mips::SW:  NaturalAlignment = 4; UnalignedOpc = Mips::USW;  break;
     case Mips::LH:  NaturalAlignment = 2; UnalignedOpc = Mips::ULH;  break;
