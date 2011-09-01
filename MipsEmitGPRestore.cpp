@@ -77,8 +77,13 @@ bool Inserter::runOnMachineFunction(MachineFunction &F) {
 
       DebugLoc dl = I->getDebugLoc();
       // emit lw $gp, ($gp save slot on stack) after jalr
-      BuildMI(MBB, ++I, dl, TII->get(Mips::LW), Mips::GP).addFrameIndex(FI)
-                                                         .addImm(0);
+      if (Subtarget->isMips64()) {
+        BuildMI(MBB, ++I, dl, TII->get(Mips::LD), Mips::GP_64).addFrameIndex(FI)
+                                                           .addImm(0);
+      } else {
+        BuildMI(MBB, ++I, dl, TII->get(Mips::LW), Mips::GP).addFrameIndex(FI)
+                                                           .addImm(0);
+      }
       Changed = true;
     }
   } 

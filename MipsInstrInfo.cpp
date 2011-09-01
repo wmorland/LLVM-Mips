@@ -47,8 +47,8 @@ static bool isZeroImm(const MachineOperand &op) {
 unsigned MipsInstrInfo::
 isLoadFromStackSlot(const MachineInstr *MI, int &FrameIndex) const
 {
-  if ((MI->getOpcode() == Mips::LW) || (MI->getOpcode() == Mips::LWC1) ||
-      (MI->getOpcode() == Mips::LDC1)) {
+  if ((MI->getOpcode() == Mips::LW) || (MI->getOpcode() == Mips::LD) ||
+      (MI->getOpcode() == Mips::LWC1) || (MI->getOpcode() == Mips::LDC1)) {
     if ((MI->getOperand(1).isFI()) && // is a stack slot
         (MI->getOperand(2).isImm()) &&  // the imm is zero
         (isZeroImm(MI->getOperand(2)))) {
@@ -69,7 +69,7 @@ unsigned MipsInstrInfo::
 isStoreToStackSlot(const MachineInstr *MI, int &FrameIndex) const
 {
   if ((MI->getOpcode() == Mips::SW) || (MI->getOpcode() == Mips::SWC1) ||
-      (MI->getOpcode() == Mips::SDC1)) {
+      (MI->getOpcode() == Mips::SD) || (MI->getOpcode() == Mips::SDC1)) {
     if ((MI->getOperand(1).isFI()) && // is a stack slot
         (MI->getOperand(2).isImm()) &&  // the imm is zero
         (isZeroImm(MI->getOperand(2)))) {

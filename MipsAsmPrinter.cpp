@@ -155,6 +155,7 @@ void MipsAsmPrinter::printSavedRegsBitmask(raw_ostream &O) {
   unsigned CPURegSize = Mips::CPURegsRegisterClass->getSize();
   unsigned FGR32RegSize = Mips::FGR32RegisterClass->getSize();
   unsigned AFGR64RegSize = Mips::AFGR64RegisterClass->getSize();
+  // unsigned CPU64RegSize = Mips::CPU64RegsRegisterClass->getSize();
   bool HasAFGR64Reg = false;
   unsigned CSFPRegsSize = 0;
   unsigned i, e = CSI.size();
@@ -190,6 +191,7 @@ void MipsAsmPrinter::printSavedRegsBitmask(raw_ostream &O) {
 
   // CPU Regs are saved below FP Regs.
   CPUTopSavedRegOff = CPUBitmask ? -CSFPRegsSize - CPURegSize : 0;
+  // 64-bit will require CPU64RegSize to be used instead
 
   // Print CPUBitmask
   O << "\t.mask \t"; printHex32(CPUBitmask, O);
