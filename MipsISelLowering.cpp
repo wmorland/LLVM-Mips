@@ -1126,6 +1126,79 @@ MipsTargetLowering::EmitAtomicBinaryPartword(MachineInstr *MI,
   return exitMBB;
 }
 
+// This function also handles Mips::ATOMIC_SWAP_I64 (when BinOpcode == 0), and
+// Mips::ATOMIC_LOAD_NAND_I64 (when Nand == true)
+MachineBasicBlock *
+MipsTargetLowering::EmitAtomicBinaryDoubleword(MachineInstr *MI, MachineBasicBlock *BB,
+                                     unsigned Size, unsigned BinOpcode,
+                                     bool Nand) const {
+  assert(Size == 8 && "Unsupported size for EmitAtomicBinaryDoubleword.");
+
+  MachineFunction *MF = BB->getParent();
+  MachineRegisterInfo &RegInfo = MF->getRegInfo();
+  const TargetRegisterClass *RC = getRegClassFor(MVT::i64);
+  const TargetInstrInfo *TII = getTargetMachine().getInstrInfo();
+  DebugLoc dl = MI->getDebugLoc();
+
+  unsigned OldVal = MI->getOperand(0).getReg();
+  unsigned Ptr = MI->getOperand(1).getReg();
+  unsigned Incr = MI->getOperand(2).getReg();
+
+  unsigned StoreVal = RegInfo.createVirtualRegister(RC);
+  unsigned AndRes = RegInfo.createVirtualRegister(RC);
+  unsigned Success = RegInfo.createVirtualRegister(RC);
+
+  // insert new blocks after the current block
+  const BasicBlock *LLVM_BB = BB->getBasicBlock();
+  MachineBasicBlock *loopMBB = MF->CreateMachineBasicBlock(LLVM_BB);
+  MachineBasicBlock *exitMBB = MF->CreateMachineBasicBlock(LLVM_BB);
+  MachineFunction::iterator It = BB;
+  ++It;
+  MF->insert(It, loopMBB);
+  MF->insert(It, exitMBB);
+
+  // Transfer the remainder of BB and its successor edges to exitMBB.
+  exitMBB->splice(exitMBB->begin(), BB,
+                  llvm::next(MachineBasicBlock::iterator(MI)),
+                  BB->end());
+  exitMBB->transferSuccessorsAndUpdatePHIs(BB);
+
+  //  thisMBB:
+  //    ...
+  //    fallthrough --> loopMBB
+  BB->addSuccessor(loopMBB);
+  loopMBB->addSuccessor(loopMBB);
+  loopMBB->addSuccessor(exitMBB);
+
+  //  loopMBB:
+  //    ll oldval, 0(ptr)
+  //    <binop> storeval, oldval, incr
+  //    sc success, storeval, 0(ptr)
+  //    beq success, $0, loopMBB
+  BB = loopMBB;
+  BuildMI(BB, dl, TII->get(Mips::LLD), OldVal).addReg(Ptr).addImm(0);
+  if (Nand) {
+    //  and andres, oldval, incr
+    //  nor storeval, $0, andres
+    BuildMI(BB, dl, TII->get(Mips::AND), AndRes).addReg(OldVal).addReg(Incr);
+    BuildMI(BB, dl, TII->get(Mips::NOR), StoreVal)
+      .addReg(Mips::ZERO_64).addReg(AndRes);
+  } else if (BinOpcode) {
+    //  <binop> storeval, oldval, incr
+    BuildMI(BB, dl, TII->get(BinOpcode), StoreVal).addReg(OldVal).addReg(Incr);
+  } else {
+    StoreVal = Incr;
+  }
+  BuildMI(BB, dl, TII->get(Mips::SCD), Success)
+    .addReg(StoreVal).addReg(Ptr).addImm(0);
+  BuildMI(BB, dl, TII->get(Mips::BEQ))
+    .addReg(Success).addReg(Mips::ZERO_64).addMBB(loopMBB);
+
+  MI->eraseFromParent();   // The instruction is gone now.
+
+  return exitMBB;
+}
+
 MachineBasicBlock *
 MipsTargetLowering::EmitAtomicCmpSwap(MachineInstr *MI,
                                       MachineBasicBlock *BB,
