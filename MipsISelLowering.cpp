@@ -847,6 +847,8 @@ MipsTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
     return EmitAtomicBinaryPartword(MI, BB, 2, Mips::ADDu);
   case Mips::ATOMIC_LOAD_ADD_I32:
     return EmitAtomicBinary(MI, BB, 4, Mips::ADDu);
+  case Mips::ATOMIC_LOAD_ADD_I64:
+    return EmitAtomicBinaryDoubleword(MI, BB, 8, Mips::DADDU);
 
   case Mips::ATOMIC_LOAD_AND_I8:
     return EmitAtomicBinaryPartword(MI, BB, 1, Mips::AND);
@@ -854,6 +856,8 @@ MipsTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
     return EmitAtomicBinaryPartword(MI, BB, 2, Mips::AND);
   case Mips::ATOMIC_LOAD_AND_I32:
     return EmitAtomicBinary(MI, BB, 4, Mips::AND);
+  case Mips::ATOMIC_LOAD_AND_I64:
+    return EmitAtomicBinaryDoubleword(MI, BB, 8, Mips::AND);
 
   case Mips::ATOMIC_LOAD_OR_I8:
     return EmitAtomicBinaryPartword(MI, BB, 1, Mips::OR);
@@ -861,6 +865,8 @@ MipsTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
     return EmitAtomicBinaryPartword(MI, BB, 2, Mips::OR);
   case Mips::ATOMIC_LOAD_OR_I32:
     return EmitAtomicBinary(MI, BB, 4, Mips::OR);
+  case Mips::ATOMIC_LOAD_OR_I64:
+      return EmitAtomicBinaryDoubleword(MI, BB, 8, Mips::OR);
 
   case Mips::ATOMIC_LOAD_XOR_I8:
     return EmitAtomicBinaryPartword(MI, BB, 1, Mips::XOR);
@@ -868,6 +874,8 @@ MipsTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
     return EmitAtomicBinaryPartword(MI, BB, 2, Mips::XOR);
   case Mips::ATOMIC_LOAD_XOR_I32:
     return EmitAtomicBinary(MI, BB, 4, Mips::XOR);
+  case Mips::ATOMIC_LOAD_XOR_I64:
+      return EmitAtomicBinaryDoubleword(MI, BB, 8, Mips::XOR);
 
   case Mips::ATOMIC_LOAD_NAND_I8:
     return EmitAtomicBinaryPartword(MI, BB, 1, 0, true);
@@ -875,6 +883,8 @@ MipsTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
     return EmitAtomicBinaryPartword(MI, BB, 2, 0, true);
   case Mips::ATOMIC_LOAD_NAND_I32:
     return EmitAtomicBinary(MI, BB, 4, 0, true);
+  case Mips::ATOMIC_LOAD_NAND_I64:
+      return EmitAtomicBinaryDoubleword(MI, BB, 8, 0, true);
 
   case Mips::ATOMIC_LOAD_SUB_I8:
     return EmitAtomicBinaryPartword(MI, BB, 1, Mips::SUBu);
@@ -882,6 +892,8 @@ MipsTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
     return EmitAtomicBinaryPartword(MI, BB, 2, Mips::SUBu);
   case Mips::ATOMIC_LOAD_SUB_I32:
     return EmitAtomicBinary(MI, BB, 4, Mips::SUBu);
+  case Mips::ATOMIC_LOAD_SUB_I64:
+    return EmitAtomicBinaryDoubleword(MI, BB, 8, Mips::DSUBu);
 
   case Mips::ATOMIC_SWAP_I8:
     return EmitAtomicBinaryPartword(MI, BB, 1, 0);
@@ -889,6 +901,8 @@ MipsTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
     return EmitAtomicBinaryPartword(MI, BB, 2, 0);
   case Mips::ATOMIC_SWAP_I32:
     return EmitAtomicBinary(MI, BB, 4, 0);
+  case Mips::ATOMIC_SWAP_I64:
+    return EmitAtomicBinaryDoubleword(MI, BB, 8, 0);
 
   case Mips::ATOMIC_CMP_SWAP_I8:
     return EmitAtomicCmpSwapPartword(MI, BB, 1);
@@ -896,6 +910,8 @@ MipsTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
     return EmitAtomicCmpSwapPartword(MI, BB, 2);
   case Mips::ATOMIC_CMP_SWAP_I32:
     return EmitAtomicCmpSwap(MI, BB, 4);
+  case Mips::ATOMIC_CMP_SWAP_I64:
+    return EmitAtomicCmpSwapDoubleword(MI, BB, 8);
   }
 }
 
@@ -1402,6 +1418,73 @@ MipsTargetLowering::EmitAtomicCmpSwapPartword(MachineInstr *MI,
       .addReg(SrlRes).addImm(ShiftImm);
   BuildMI(BB, dl, TII->get(Mips::SRA), Dest)
       .addReg(SllRes).addImm(ShiftImm);
+
+  MI->eraseFromParent();   // The instruction is gone now.
+
+  return exitMBB;
+}
+
+MachineBasicBlock *
+MipsTargetLowering::EmitAtomicCmpSwapDoubleword(MachineInstr *MI,
+                                      MachineBasicBlock *BB,
+                                      unsigned Size) const {
+  assert(Size == 8 && "Unsupported size for EmitAtomicCmpSwapDwoubleword.");
+
+  MachineFunction *MF = BB->getParent();
+  MachineRegisterInfo &RegInfo = MF->getRegInfo();
+  const TargetRegisterClass *RC = getRegClassFor(MVT::i64);
+  const TargetInstrInfo *TII = getTargetMachine().getInstrInfo();
+  DebugLoc dl = MI->getDebugLoc();
+
+  unsigned Dest    = MI->getOperand(0).getReg();
+  unsigned Ptr     = MI->getOperand(1).getReg();
+  unsigned OldVal  = MI->getOperand(2).getReg();
+  unsigned NewVal  = MI->getOperand(3).getReg();
+
+  unsigned Success = RegInfo.createVirtualRegister(RC);
+
+  // insert new blocks after the current block
+  const BasicBlock *LLVM_BB = BB->getBasicBlock();
+  MachineBasicBlock *loop1MBB = MF->CreateMachineBasicBlock(LLVM_BB);
+  MachineBasicBlock *loop2MBB = MF->CreateMachineBasicBlock(LLVM_BB);
+  MachineBasicBlock *exitMBB = MF->CreateMachineBasicBlock(LLVM_BB);
+  MachineFunction::iterator It = BB;
+  ++It;
+  MF->insert(It, loop1MBB);
+  MF->insert(It, loop2MBB);
+  MF->insert(It, exitMBB);
+
+  // Transfer the remainder of BB and its successor edges to exitMBB.
+  exitMBB->splice(exitMBB->begin(), BB,
+                  llvm::next(MachineBasicBlock::iterator(MI)),
+                  BB->end());
+  exitMBB->transferSuccessorsAndUpdatePHIs(BB);
+
+  //  thisMBB:
+  //    ...
+  //    fallthrough --> loop1MBB
+  BB->addSuccessor(loop1MBB);
+  loop1MBB->addSuccessor(exitMBB);
+  loop1MBB->addSuccessor(loop2MBB);
+  loop2MBB->addSuccessor(loop1MBB);
+  loop2MBB->addSuccessor(exitMBB);
+
+  // loop1MBB:
+  //   ll dest, 0(ptr)
+  //   bne dest, oldval, exitMBB
+  BB = loop1MBB;
+  BuildMI(BB, dl, TII->get(Mips::LLD), Dest).addReg(Ptr).addImm(0);
+  BuildMI(BB, dl, TII->get(Mips::BNE))
+    .addReg(Dest).addReg(OldVal).addMBB(exitMBB);
+
+  // loop2MBB:
+  //   sc success, newval, 0(ptr)
+  //   beq success, $0, loop1MBB
+  BB = loop2MBB;
+  BuildMI(BB, dl, TII->get(Mips::SCD), Success)
+    .addReg(NewVal).addReg(Ptr).addImm(0);
+  BuildMI(BB, dl, TII->get(Mips::BEQ))
+    .addReg(Success).addReg(Mips::ZERO_64).addMBB(loop1MBB);
 
   MI->eraseFromParent();   // The instruction is gone now.
 
