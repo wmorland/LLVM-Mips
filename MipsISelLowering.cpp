@@ -190,8 +190,8 @@ MipsTargetLowering(MipsTargetMachine &TM)
   setOperationAction(ISD::MEMBARRIER,        MVT::Other, Custom);
   setOperationAction(ISD::ATOMIC_FENCE,      MVT::Other, Custom);  
 
-  setOperationAction(ISD::ATOMIC_LOAD,       MVT::i32,    Expand);  
-  setOperationAction(ISD::ATOMIC_STORE,      MVT::i32,    Expand);  
+  setOperationAction(ISD::ATOMIC_LOAD,       size,       Expand);
+  setOperationAction(ISD::ATOMIC_STORE,      size,       Expand);
 
   setInsertFencesForAtomic(true);
 
@@ -228,7 +228,7 @@ MipsTargetLowering(MipsTargetMachine &TM)
 
 bool MipsTargetLowering::allowsUnalignedMemoryAccesses(EVT VT) const {
   MVT::SimpleValueType SVT = VT.getSimpleVT().SimpleTy;
-  return SVT == MVT::i32 || SVT == MVT::i16; 
+  return SVT == MVT::i64 || SVT == MVT::i32 || SVT == MVT::i16;
 }
 
 MVT::SimpleValueType MipsTargetLowering::getSetCCResultType(EVT VT) const {
@@ -603,10 +603,18 @@ static SDValue PerformANDCombine(SDNode *N, SelectionDAG& DAG,
   if (SMPos != 0 || Pos + SMSize > 32)
     return SDValue();
 
-  return DAG.getNode(MipsISD::Ext, N->getDebugLoc(), MVT::i32,
+  MVT::SimpleValueType size;
+
+  if (Subtarget->isMips64()) {
+    size = MVT::i64;
+  } else {
+    size = MVT::i32;
+  }
+
+  return DAG.getNode(MipsISD::Ext, N->getDebugLoc(), size,
                      ShiftRight.getOperand(0),
-                     DAG.getConstant(Pos, MVT::i32),
-                     DAG.getConstant(SMSize, MVT::i32));
+                     DAG.getConstant(Pos, size),
+                     DAG.getConstant(SMSize, size));
 }
   
 static SDValue PerformORCombine(SDNode *N, SelectionDAG& DAG,
@@ -657,10 +665,18 @@ static SDValue PerformORCombine(SDNode *N, SelectionDAG& DAG,
   if (Shamt != SMPos0)
     return SDValue();
   
-  return DAG.getNode(MipsISD::Ins, N->getDebugLoc(), MVT::i32,
+  MVT::SimpleValueType size;
+
+  if (Subtarget->isMips64()) {
+    size = MVT::i64;
+  } else {
+    size = MVT::i32;
+  }
+
+  return DAG.getNode(MipsISD::Ins, N->getDebugLoc(), size,
                      Shl.getOperand(0),
-                     DAG.getConstant(SMPos0, MVT::i32),
-                     DAG.getConstant(SMSize0, MVT::i32),
+                     DAG.getConstant(SMPos0, size),
+                     DAG.getConstant(SMSize0, size),
                      And0.getOperand(0));  
 }
   
