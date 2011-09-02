@@ -92,13 +92,13 @@ MipsTargetLowering(MipsTargetMachine &TM)
   // Set up the register classes
   addRegisterClass(MVT::i32, Mips::CPURegsRegisterClass);
   addRegisterClass(MVT::f32, Mips::FGR32RegisterClass);
-  addRegisterClass(MVT::i64, Mips::CPU64RegsRegisterClass);
 
   // Introduce a variable size to allow differences between 32-bit and
   // 64-bit architecture
   MVT::SimpleValueType size;
   if (Subtarget->isMips64()) {
     size = MVT::i64;
+    addRegisterClass(MVT::i64, Mips::CPU64RegsRegisterClass);
   } else {
     size = MVT::i32;
   }
