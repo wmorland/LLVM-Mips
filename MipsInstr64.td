@@ -88,6 +88,13 @@ class DLogicR_shift_rotate_reg<bits<6> func, bits<5> _shamt, string instr_asm,
   let shamt = _shamt;
 }
 
+let isBranch = 1, isTerminator=1, hasDelaySlot = 1 in {
+class DCBranch<bits<6> op, string instr_asm, PatFrag cond_op>:
+  FI<op, (outs), (ins CPU64Regs:$a, CPU64Regs:$b, brtarget:$offset),
+     !strconcat(instr_asm, "\t$a, $b, $offset"),
+     [(brcond (cond_op CPU64Regs:$a, CPU64Regs:$b), bb:$offset)],
+     IIBranch>;
+}
 
 //===----------------------------------------------------------------------===//
 // Instruction definition
@@ -98,6 +105,7 @@ let Predicates = [IsMips64] in {
   def DADDIU  : DArithI<0x19, "daddiu", add, simm16, immSExt16>;
   def SD      : DStoreM<0x3f, "sd", store>;
   def LD      : DLoadM<0x37,  "ld", load>;
+  def BEQ_64  : DCBranch<0x04, "beq", seteq>;
   
 //    // Find where this is being cracked open to check stuff like commutability
 //    def DSUB    : DArithOverflowR<0x00, 0x2e, "dsub">;
