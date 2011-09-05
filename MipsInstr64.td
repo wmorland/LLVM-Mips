@@ -143,13 +143,9 @@ def USD :
 
 // Small immediates
 def : Pat<(i64 immSExt16:$in),
-          (ADDiu ZERO, imm:$in)>;
+          (ADDiu ZERO_64, imm:$in)>;
 def : Pat<(i64 immZExt16:$in),
-          (ORi ZERO, imm:$in)>;
-
-// Arbitrary immediates
-def : Pat<(i64 imm:$imm),
-          (ORi (LUi (HI32 imm:$imm)), (LO32 imm:$imm))>;
+          (ORi ZERO_64, imm:$in)>;
 
 // brcond patterns
 def : Pat<(brcond (seteq CPU64Regs:$lhs, 0), bb:$dst),
