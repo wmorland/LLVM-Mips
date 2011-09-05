@@ -153,18 +153,18 @@ def : Pat<(i64 imm:$imm),
 
 // brcond patterns
 def : Pat<(brcond (seteq CPU64Regs:$lhs, 0), bb:$dst),
-          (BEQ CPU64Regs:$lhs, ZERO_64, bb:$dst)>;
+          (BEQ_64 CPU64Regs:$lhs, ZERO_64, bb:$dst)>;
 
 def : Pat<(brcond (setge CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
-          (BEQ (SLT CPU64Regs:$lhs, CPU64Regs:$rhs), ZERO_64, bb:$dst)>;
+          (BEQ_64 (SLT CPU64Regs:$lhs, CPU64Regs:$rhs), ZERO_64, bb:$dst)>;
 def : Pat<(brcond (setuge CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
-          (BEQ (SLTu CPU64Regs:$lhs, CPU64Regs:$rhs), ZERO_64, bb:$dst)>;
+          (BEQ_64 (SLTu CPU64Regs:$lhs, CPU64Regs:$rhs), ZERO_64, bb:$dst)>;
 def : Pat<(brcond (setge CPU64Regs:$lhs, immSExt16:$rhs), bb:$dst),
-          (BEQ (SLTi CPU64Regs:$lhs, immSExt16:$rhs), ZERO_64, bb:$dst)>;
+          (BEQ_64 (SLTi CPU64Regs:$lhs, immSExt16:$rhs), ZERO_64, bb:$dst)>;
 def : Pat<(brcond (setuge CPU64Regs:$lhs, immSExt16:$rhs), bb:$dst),
-          (BEQ (SLTiu CPU64Regs:$lhs, immSExt16:$rhs), ZERO_64, bb:$dst)>;
+          (BEQ_64 (SLTiu CPU64Regs:$lhs, immSExt16:$rhs), ZERO_64, bb:$dst)>;
 
 def : Pat<(brcond (setle CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
-          (BEQ (SLT CPU64Regs:$rhs, CPU64Regs:$lhs), ZERO_64, bb:$dst)>;
+          (BEQ_64 (SLT CPU64Regs:$rhs, CPU64Regs:$lhs), ZERO_64, bb:$dst)>;
 def : Pat<(brcond (setule CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
-          (BEQ (SLTu CPU64Regs:$rhs, CPU64Regs:$lhs), ZERO_64, bb:$dst)>;
+          (BEQ_64 (SLTu CPU64Regs:$rhs, CPU64Regs:$lhs), ZERO_64, bb:$dst)>;
