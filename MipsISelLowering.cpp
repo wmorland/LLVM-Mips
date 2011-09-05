@@ -2775,7 +2775,7 @@ MipsTargetLowering::getSingleConstraintMatchWeight(
   return weight;
 }
 
-/// Given a register class constraint, like 'r',http://www.microsoft.com/security/sdl/adopt/eop.aspx if this corresponds directly
+/// Given a register class constraint, like 'r', if this corresponds directly
 /// to an LLVM register class, return a register of 0 and the register class
 /// pointer.
 std::pair<unsigned, const TargetRegisterClass*> MipsTargetLowering::
