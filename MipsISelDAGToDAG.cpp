@@ -94,7 +94,7 @@ private:
 
   // getI64Imm - Return a target constant with the specified
   // value, of type i64
-  inline SDValue getI64Imm(unsigned Imm) {
+  inline SDValue getI64Imm(int64_t Imm) {
     return CurDAG->getTargetConstant(Imm, MVT::i64);
   }
 

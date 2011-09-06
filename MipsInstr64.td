@@ -23,12 +23,12 @@ def IsMips64  : Predicate<"Subtarget.isMips64()">;
 
 // Transformation Function - get the lower 32 bits.
 def LO32 : SDNodeXForm<imm, [{
-  return getI64Imm((unsigned)N->getZExtValue() & 0xFFFFFFFF);
+  return getI64Imm(N->getZExtValue() & 0xFFFFFFFF);
 }]>;
 
 // Transformation Function - get the higher 32 bits.
 def HI32 : SDNodeXForm<imm, [{
-  return getI64Imm((unsigned)N->getZExtValue() >> 32);
+  return getI64Imm(N->getZExtValue() >> 32);
 }]>;
 
 //===----------------------------------------------------------------------===//
