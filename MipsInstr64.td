@@ -21,6 +21,8 @@ def IsMips64  : Predicate<"Subtarget.isMips64()">;
 // Mips Operand, Complex Patterns and Transformations Definitions.
 //===----------------------------------------------------------------------===//
 
+def simm16_64      : Operand<i64>;
+
 // Transformation Function - get the lower 32 bits.
 def LO32 : SDNodeXForm<imm, [{
   return getI64Imm(N->getZExtValue() & 0xFFFFFFFF);
@@ -92,9 +94,17 @@ let isBranch = 1, isTerminator=1, hasDelaySlot = 1 in {
 class DCBranch<bits<6> op, string instr_asm, PatFrag cond_op>:
   FI<op, (outs), (ins CPU64Regs:$a, CPU64Regs:$b, brtarget:$offset),
      !strconcat(instr_asm, "\t$a, $b, $offset"),
-     [(brcond (cond_op CPU64Regs:$a, CPU64Regs:$b), bb:$offset)],
+     [(brcond (i64 (cond_op CPU64Regs:$a, CPU64Regs:$b)), bb:$offset)],
      IIBranch>;
 }
+
+// SetCC64
+class SetCC64_R<bits<6> op, bits<6> func, string instr_asm,
+      PatFrag cond_op>:
+  FR<op, func, (outs CPU64Regs:$dst), (ins CPU64Regs:$b, CPU64Regs:$c),
+     !strconcat(instr_asm, "\t$dst, $b, $c"),
+     [(set CPU64Regs:$dst, (cond_op CPU64Regs:$b, CPU64Regs:$c))],
+     IIAlu>;
 
 //===----------------------------------------------------------------------===//
 // Instruction definition
@@ -102,11 +112,12 @@ class DCBranch<bits<6> op, string instr_asm, PatFrag cond_op>:
 
 let Predicates = [IsMips64] in {
   def DADD    : DArithOverflowR<0x00, 0x2c, "dadd", 1>;
-  def DADDIU  : DArithI<0x19, "daddiu", add, simm16, immSExt16>;
+  def DADDIU  : DArithI<0x19, "daddiu", add, simm16_64, immSExt16>;
   def SD      : DStoreM<0x3f, "sd", store>;
   def LD      : DLoadM<0x37,  "ld", load>;
   def BEQ_64  : DCBranch<0x04, "beq", seteq>;
-  
+  def SLT64   : SetCC64_R<0x00, 0x2a, "slt", setlt>;
+
 //    // Find where this is being cracked open to check stuff like commutability
 //    def DSUB    : DArithOverflowR<0x00, 0x2e, "dsub">;
 //    def DADDI   : DArithOverflowI<0x18, "daddi", add, simm16, immSExt16>;
@@ -143,24 +154,24 @@ def USD :
 
 // Small immediates
 def : Pat<(i64 immSExt16:$in),
-          (ADDiu ZERO_64, imm:$in)>;
-def : Pat<(i64 immZExt16:$in),
-          (ORi ZERO_64, imm:$in)>;
+          (DADDIU ZERO_64, imm:$in)>;
+//def : Pat<(i64 immZExt16:$in),
+//          (ORi ZERO_64, imm:$in)>;
 
 // brcond patterns
-def : Pat<(brcond (seteq CPU64Regs:$lhs, 0), bb:$dst),
+def : Pat<(brcond (i64 (seteq CPU64Regs:$lhs, 0)), bb:$dst),
           (BEQ_64 CPU64Regs:$lhs, ZERO_64, bb:$dst)>;
 
-def : Pat<(brcond (setge CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
-          (BEQ_64 (SLT CPU64Regs:$lhs, CPU64Regs:$rhs), ZERO_64, bb:$dst)>;
-def : Pat<(brcond (setuge CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
-          (BEQ_64 (SLTu CPU64Regs:$lhs, CPU64Regs:$rhs), ZERO_64, bb:$dst)>;
-def : Pat<(brcond (setge CPU64Regs:$lhs, immSExt16:$rhs), bb:$dst),
-          (BEQ_64 (SLTi CPU64Regs:$lhs, immSExt16:$rhs), ZERO_64, bb:$dst)>;
-def : Pat<(brcond (setuge CPU64Regs:$lhs, immSExt16:$rhs), bb:$dst),
-          (BEQ_64 (SLTiu CPU64Regs:$lhs, immSExt16:$rhs), ZERO_64, bb:$dst)>;
+def : Pat<(brcond (i64 (setge CPU64Regs:$lhs, CPU64Regs:$rhs)), bb:$dst),
+          (BEQ_64 (SLT64 CPU64Regs:$lhs, CPU64Regs:$rhs), ZERO_64, bb:$dst)>;
+//def : Pat<(brcond (setuge CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
+//          (BEQ_64 (SLTu CPU64Regs:$lhs, CPU64Regs:$rhs), ZERO_64, bb:$dst)>;
+//def : Pat<(brcond (setge CPU64Regs:$lhs, immSExt16:$rhs), bb:$dst),
+//          (BEQ_64 (SLTi CPU64Regs:$lhs, immSExt16:$rhs), ZERO_64, bb:$dst)>;
+//def : Pat<(brcond (setuge CPU64Regs:$lhs, immSExt16:$rhs), bb:$dst),
+//          (BEQ_64 (SLTiu CPU64Regs:$lhs, immSExt16:$rhs), ZERO_64, bb:$dst)>;
 
-def : Pat<(brcond (setle CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
-          (BEQ_64 (SLT CPU64Regs:$rhs, CPU64Regs:$lhs), ZERO_64, bb:$dst)>;
-def : Pat<(brcond (setule CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
-          (BEQ_64 (SLTu CPU64Regs:$rhs, CPU64Regs:$lhs), ZERO_64, bb:$dst)>;
+//def : Pat<(brcond (setle CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
+//          (BEQ_64 (SLT CPU64Regs:$rhs, CPU64Regs:$lhs), ZERO_64, bb:$dst)>;
+//def : Pat<(brcond (setule CPU64Regs:$lhs, CPU64Regs:$rhs), bb:$dst),
+//          (BEQ_64 (SLTu CPU64Regs:$rhs, CPU64Regs:$lhs), ZERO_64, bb:$dst)>;

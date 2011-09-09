@@ -263,11 +263,11 @@ def MIPS_FCOND_NGT  : PatLeaf<(i32 15)>;
 let hasDelaySlot = 1, Defs=[FCR31] in {
   def FCMP_S32 : FCC<0x0, (outs), (ins FGR32:$fs, FGR32:$ft, condcode:$cc),
                      "c.$cc.s\t$fs, $ft",
-                     [(MipsFPCmp FGR32:$fs, FGR32:$ft, imm:$cc)]>;
+                     [(MipsFPCmp FGR32:$fs, FGR32:$ft, (i32 imm:$cc))]>;
 
   def FCMP_D32 : FCC<0x1, (outs), (ins AFGR64:$fs, AFGR64:$ft, condcode:$cc),
                      "c.$cc.d\t$fs, $ft",
-                     [(MipsFPCmp AFGR64:$fs, AFGR64:$ft, imm:$cc)]>,
+                     [(MipsFPCmp AFGR64:$fs, AFGR64:$ft, (i32 imm:$cc))]>,
                      Requires<[In32BitMode]>;
 }
 
@@ -345,7 +345,7 @@ def ExtractElementF64 :
   MipsPseudo<(outs CPURegs:$dst),
              (ins AFGR64:$src, i32imm:$n), "",
              [(set CPURegs:$dst,
-               (MipsExtractElementF64 AFGR64:$src, imm:$n))]>;
+               (MipsExtractElementF64 AFGR64:$src, (i32 imm:$n)))]>;
 
 //===----------------------------------------------------------------------===//
 // Floating Point Patterns
